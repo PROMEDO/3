@@ -1487,6 +1487,157 @@ function useDashboardController({
       draftSnapshot.mutedByUser = !shouldEnable;
     }
 
+    if (keySnapshot === 'mysteryBoxOffer') {
+      const title = String(draftSnapshot.title || '').trim();
+      const price = Math.max(0, Number(draftSnapshot.price ?? 0) || 0);
+      const originalPrice = Math.max(price, Number(draftSnapshot.originalPrice ?? price) || price);
+      if (!title || (shouldEnable && price <= 0)) {
+        setAddonEditError('يرجى إدخال عنوان الصندوق وسعر بيع أكبر من صفر.');
+        return;
+      }
+      draftSnapshot.title = title;
+      draftSnapshot.subtitle = String(draftSnapshot.subtitle || '').trim();
+      draftSnapshot.price = price;
+      draftSnapshot.originalPrice = originalPrice;
+      draftSnapshot.remainingCount = Math.max(1, Math.floor(Number(draftSnapshot.remainingCount ?? 5) || 5));
+    }
+
+    if (keySnapshot === 'bogoDealEngine') {
+      const title = String(draftSnapshot.title || 'اطلب قطعتين واحصل على خصم للثانية').trim();
+      const pct = Math.min(100, Math.max(5, Math.floor(Number(draftSnapshot.secondItemDiscountPercent ?? 50) || 50)));
+      draftSnapshot.title = title;
+      draftSnapshot.secondItemDiscountPercent = pct;
+    }
+
+    if (keySnapshot === 'vipSecretMenuLock') {
+      const code = String(draftSnapshot.secretCode || '').trim().toUpperCase();
+      const dishName = String(draftSnapshot.dishName || '').trim();
+      const dishPrice = Math.max(0, Number(draftSnapshot.dishPrice ?? 0) || 0);
+      if (!code || !dishName || (shouldEnable && dishPrice <= 0)) {
+        setAddonEditError('يرجى إدخال الرمز السري واسم الطبق الحصري وسعر أكبر من صفر.');
+        return;
+      }
+      draftSnapshot.secretCode = code;
+      draftSnapshot.dishName = dishName;
+      draftSnapshot.dishDesc = String(draftSnapshot.dishDesc || '').trim();
+      draftSnapshot.dishPrice = dishPrice;
+    }
+
+    if (keySnapshot === 'pickupInstantDiscount') {
+      draftSnapshot.title = String(draftSnapshot.title || 'خصم الاستلام الذاتي').trim();
+      draftSnapshot.discountPercent = Math.min(90, Math.max(1, Number(draftSnapshot.discountPercent ?? 10) || 10));
+    }
+
+    if (keySnapshot === 'birthdayVipTreat') {
+      const label = String(draftSnapshot.label || '').trim();
+      if (!label) {
+        setAddonEditError('يرجى إدخال تسمية خيار المناسبة.');
+        return;
+      }
+      draftSnapshot.label = label;
+      draftSnapshot.freeTreatNote = String(draftSnapshot.freeTreatNote || '').trim();
+    }
+
+    if (keySnapshot === 'buildYourOwnCombo') {
+      draftSnapshot.title = String(draftSnapshot.title || 'خصم الكومبو التلقائي').trim();
+      draftSnapshot.requiredCount = Math.min(10, Math.max(2, Math.floor(Number(draftSnapshot.requiredCount ?? 3) || 3)));
+      draftSnapshot.discountPercent = Math.min(80, Math.max(1, Number(draftSnapshot.discountPercent ?? 12) || 12));
+    }
+
+    if (keySnapshot === 'flashQuantityScarcity') {
+      draftSnapshot.badgePrefix = String(draftSnapshot.badgePrefix || 'متبقي اليوم').trim();
+      draftSnapshot.defaultRemaining = Math.min(25, Math.max(1, Math.floor(Number(draftSnapshot.defaultRemaining ?? 4) || 4)));
+    }
+
+    if (keySnapshot === 'streakRewardsCard') {
+      const rewardTitle = String(draftSnapshot.rewardTitle || '').trim();
+      if (!rewardTitle) {
+        setAddonEditError('يرجى كتابة اسم المكافأة عند اكتمال الأختام.');
+        return;
+      }
+      draftSnapshot.targetOrders = Math.min(20, Math.max(2, Math.floor(Number(draftSnapshot.targetOrders ?? 5) || 5)));
+      draftSnapshot.rewardTitle = rewardTitle;
+    }
+
+    if (keySnapshot === 'smartPairingSuggest') {
+      draftSnapshot.title = String(draftSnapshot.title || 'يناسب طبقك بشكل مثالي').trim();
+      draftSnapshot.categoryKeyword = String(draftSnapshot.categoryKeyword || 'مشروب').trim();
+    }
+
+    if (keySnapshot === 'luxuryGiftPackaging') {
+      const label = String(draftSnapshot.label || '').trim();
+      const feeAmount = Math.max(0, Number(draftSnapshot.feeAmount ?? 0) || 0);
+      if (!label || (shouldEnable && feeAmount <= 0)) {
+        setAddonEditError('يرجى كتابة تسمية التغليف وسعر أكبر من صفر.');
+        return;
+      }
+      draftSnapshot.label = label;
+      draftSnapshot.feeAmount = feeAmount;
+    }
+
+    if (keySnapshot === 'moodMealFinder') {
+      draftSnapshot.title = String(draftSnapshot.title || 'مستشار المزاج والوجبة الذكي').trim();
+      draftSnapshot.buttonText = String(draftSnapshot.buttonText || 'اختر لي وجبة حسب مزاجي ✨').trim();
+    }
+
+    if (keySnapshot === 'voiceSearchOrder') {
+      draftSnapshot.lang = draftSnapshot.lang || 'ar-IQ';
+      draftSnapshot.hintText = String(draftSnapshot.hintText || 'تحدث الآن واذكر اسم الطبق...').trim();
+    }
+
+    if (keySnapshot === 'dietaryAllergyRadar') {
+      draftSnapshot.warningText = String(draftSnapshot.warningText || 'قد يحتوي هذا الطبق على مكونات مستبعدة في فلتر صحتك').trim();
+    }
+
+    if (keySnapshot === 'calorieMacroBudget') {
+      draftSnapshot.targetCalories = Math.min(5000, Math.max(200, Math.floor(Number(draftSnapshot.targetCalories ?? 900) || 900)));
+    }
+
+    if (keySnapshot === 'multiCurrencySwitch') {
+      const altSymbol = String(draftSnapshot.altSymbol || '$').trim();
+      const exchangeRate = Number(draftSnapshot.exchangeRate ?? 1500) || 0;
+      if (!altSymbol || exchangeRate <= 0) {
+        setAddonEditError('يرجى إدخال رمز العملة البديلة وسعر صرف أكبر من صفر.');
+        return;
+      }
+      draftSnapshot.altSymbol = altSymbol;
+      draftSnapshot.exchangeRate = exchangeRate;
+    }
+
+    if (keySnapshot === 'dishCompareDrawer') {
+      draftSnapshot.maxCompare = Math.min(4, Math.max(2, Math.floor(Number(draftSnapshot.maxCompare ?? 3) || 3)));
+    }
+
+    if (keySnapshot === 'charityMealRoundup') {
+      const title = String(draftSnapshot.title || '').trim();
+      const donationAmount = Math.max(0, Number(draftSnapshot.donationAmount ?? 0) || 0);
+      if (!title || (shouldEnable && donationAmount <= 0)) {
+        setAddonEditError('يرجى إدخال عنوان المبادرة ومبلغ مساهمة أكبر من صفر.');
+        return;
+      }
+      draftSnapshot.title = title;
+      draftSnapshot.donationAmount = donationAmount;
+    }
+
+    if (keySnapshot === 'curbsidePickupCar') {
+      draftSnapshot.instructions = String(draftSnapshot.instructions || 'اركن سيارتك أمام البوابة واضغط وصلت').trim();
+      draftSnapshot.allowArrivedPing = draftSnapshot.allowArrivedPing !== false;
+    }
+
+    if (keySnapshot === 'liveKitchenLoad') {
+      draftSnapshot.level = draftSnapshot.level || 'calm';
+      draftSnapshot.customNote = String(draftSnapshot.customNote || '').trim();
+    }
+
+    if (keySnapshot === 'silentDropoffOption') {
+      const label = String(draftSnapshot.label || '').trim();
+      if (!label) {
+        setAddonEditError('يرجى كتابة نص خيار التوصيل الصامت.');
+        return;
+      }
+      draftSnapshot.label = label;
+    }
+
     setAddonEditError('');
     setAddonSaving(true);
     try {
@@ -2286,6 +2437,16 @@ function useDashboardController({
     }
   };
 
+  const handleUpdateQrDesign = async (patch: Partial<NonNullable<Restaurant['qrDesign']>>) => {
+    const latestRest = getItem<Restaurant>(`restaurants/${rid}`) || rest;
+    const nextQrDesign = { ...(latestRest.qrDesign || {}), ...patch };
+    await putItemAndSync<Restaurant>(`restaurants/${rid}`, {
+      ...latestRest,
+      qrDesign: nextQrDesign,
+    });
+    onRefresh();
+  };
+
   const handleCurrencyChange = (nextCurrency: string) => {
     setRestCurrency(nextCurrency);
     const latestRest = getItem<Restaurant>(`restaurants/${rid}`) || rest;
@@ -2666,6 +2827,7 @@ function useDashboardController({
     handleSaveAppearance,
     flushPendingAppearanceSave,
     appearanceSaving,
+    handleUpdateQrDesign,
     handleCurrencyChange,
     handleSaveSettings,
     orderFilter,

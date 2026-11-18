@@ -454,6 +454,7 @@ export const UnifiedPartnersAccountsSection: React.FC<UnifiedPartnersAccountsSec
       personalRid: session.personalRid || 'demo',
       rid,
       admin: true,
+      menuLoggedOut: false,
     });
     onNavigate('/dashboard/home');
   };

@@ -298,7 +298,7 @@ export const StatsPage: React.FC = () => {
           <motion.div
             initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
             style={{
               ...surfaceCardStyle,
               borderRadius: '18px',
@@ -385,7 +385,7 @@ export const StatsPage: React.FC = () => {
             <motion.div
               initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: prefersReducedMotion ? 0 : 0.04, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.82, delay: prefersReducedMotion ? 0 : 0.06, ease: [0.16, 1, 0.3, 1] }}
               whileHover={prefersReducedMotion ? undefined : { y: -2 }}
               style={{ ...surfaceCardStyle, padding: '18px 20px', borderRadius: '16px' }}
             >
@@ -403,7 +403,7 @@ export const StatsPage: React.FC = () => {
             <motion.div
               initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: prefersReducedMotion ? 0 : 0.09, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.82, delay: prefersReducedMotion ? 0 : 0.14, ease: [0.16, 1, 0.3, 1] }}
               whileHover={prefersReducedMotion ? undefined : { y: -2 }}
               style={{ ...surfaceCardStyle, padding: '18px 20px', borderRadius: '16px' }}
             >
@@ -421,7 +421,7 @@ export const StatsPage: React.FC = () => {
             <motion.div
               initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: prefersReducedMotion ? 0 : 0.14, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.82, delay: prefersReducedMotion ? 0 : 0.22, ease: [0.16, 1, 0.3, 1] }}
               whileHover={prefersReducedMotion ? undefined : { y: -2 }}
               style={{ ...surfaceCardStyle, padding: '18px 20px', borderRadius: '16px' }}
             >
@@ -439,7 +439,7 @@ export const StatsPage: React.FC = () => {
             <motion.div
               initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: prefersReducedMotion ? 0 : 0.19, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.82, delay: prefersReducedMotion ? 0 : 0.3, ease: [0.16, 1, 0.3, 1] }}
               whileHover={prefersReducedMotion ? undefined : { y: -2 }}
               style={{ ...surfaceCardStyle, padding: '18px 20px', borderRadius: '16px' }}
             >
@@ -461,7 +461,7 @@ export const StatsPage: React.FC = () => {
               initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.08 }}
-              transition={{ duration: 0.44, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
               style={{ ...surfaceCardStyle, padding: '22px', borderRadius: '20px' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
@@ -536,7 +536,7 @@ export const StatsPage: React.FC = () => {
                             initial={prefersReducedMotion ? false : { width: 0 }}
                             whileInView={{ width: `${pct}%` }}
                             viewport={{ once: true, amount: 0.1 }}
-                            transition={{ duration: 0.65, delay: prefersReducedMotion ? 0 : idx * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                            transition={{ duration: 0.9, delay: prefersReducedMotion ? 0 : idx * 0.07, ease: [0.16, 1, 0.3, 1] }}
                             style={{
                               width: `${pct}%`,
                               height: '100%',
@@ -557,7 +557,7 @@ export const StatsPage: React.FC = () => {
               initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.08 }}
-              transition={{ duration: 0.44, delay: prefersReducedMotion ? 0 : 0.08, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.9, delay: prefersReducedMotion ? 0 : 0.12, ease: [0.16, 1, 0.3, 1] }}
               style={{ ...surfaceCardStyle, padding: '22px', borderRadius: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

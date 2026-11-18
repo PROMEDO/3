@@ -256,12 +256,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
     }, 60);
   };
 
-  const personalMenuRid = session?.admin
+  const personalMenuRid = session?.menuLoggedOut
+    ? ''
+    : session?.admin
     ? (session.personalRid || 'demo')
     : (session?.rid || '');
   const ownRestaurant = personalMenuRid ? getItem<Restaurant>(`restaurants/${personalMenuRid}`) : null;
   const hasPersonalMenu = Boolean(personalMenuRid && (ownRestaurant || session?.admin));
-  const isAdminWithMenu = Boolean(session?.admin && hasPersonalMenu);
+  const isAdminWithMenu = Boolean(session?.admin && hasPersonalMenu && !session?.menuLoggedOut);
 
   const isStoreComplete = Boolean(
     session?.admin ||
@@ -295,11 +297,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
     }
     if (session.admin) {
       const targetRid = personalMenuRid || 'demo';
-      if (session.rid !== targetRid || session.personalRid !== targetRid) {
+      if (session.rid !== targetRid || session.personalRid !== targetRid || session.menuLoggedOut) {
         setSession({
           ...session,
           personalRid: targetRid,
           rid: targetRid,
+          menuLoggedOut: false,
         });
       }
       onNavigate('/dashboard/home');
@@ -501,11 +504,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
                       {isRtl ? (
                         <>
                           <span>{dashboardLabel}</span>
-                          <LayoutDashboard size={16} />
+                          {session.admin ? <Shield size={16} /> : <LayoutDashboard size={16} />}
                         </>
                       ) : (
                         <>
-                          <LayoutDashboard size={16} />
+                          {session.admin ? <Shield size={16} /> : <LayoutDashboard size={16} />}
                           <span>{dashboardLabel}</span>
                         </>
                       )}
@@ -689,28 +692,28 @@ export const HomeView: React.FC<HomeViewProps> = ({
             ) : (
               <button
                 type="button"
-                className="btn p s"
+                className={session?.admin ? 'btn s' : 'btn p s'}
                 onClick={handleEnterNow}
                 style={{
-                  fontSize: '13.5px',
+                  fontSize: session?.admin ? '13px' : '13.5px',
                   fontWeight: 800,
-                  padding: '8px 22px',
+                  padding: session?.admin ? '8px 16px' : '8px 22px',
                   borderRadius: '9999px',
                   whiteSpace: 'nowrap',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  boxShadow: '0 4px 16px rgba(27, 94, 74, 0.4)',
+                  boxShadow: session?.admin ? undefined : '0 4px 16px rgba(27, 94, 74, 0.4)',
                 }}
               >
                 {isRtl ? (
                   <>
                     <span>{session ? dashboardLabel : navEnterNowText}</span>
-                    <ArrowLeft size={14} />
+                    {session?.admin ? <Shield size={14} /> : <ArrowLeft size={14} />}
                   </>
                 ) : (
                   <>
-                    <ArrowRight size={14} />
+                    {session?.admin ? <Shield size={14} /> : <ArrowRight size={14} />}
                     <span>{session ? dashboardLabel : navEnterNowText}</span>
                   </>
                 )}
@@ -880,7 +883,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   className="mp-magic-create-btn hero-cta-btn"
                   whileHover={prefersReducedMotion ? undefined : { y: -2, scale: 1.015 }}
                   whileTap={prefersReducedMotion ? undefined : { scale: 0.985 }}
-                  transition={{ duration: 0.32 }}
+                  transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
                   onClick={() => {
                     if (/^https?:\/\//i.test(heroCtaLink)) {
                       window.location.href = heroCtaLink;
@@ -1555,7 +1558,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                             key={`${plan.id}-${billingCycle}-${finalPrice}`}
                             initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.44, ease: [0.16, 1, 0.3, 1] }}
+                            transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
                             className="tabular-nums"
                             style={{ fontSize: '23px', fontWeight: 900, color: 'var(--ink)', lineHeight: 1.1, display: 'inline-block' }}
                           >
@@ -1957,7 +1960,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
       )}
 
-      {/* Simplified 30-Addons Showcase Modal */}
+      {/* Simplified 50-Addons Showcase Modal */}
       {showAddonsModal && (() => {
         const SHORT_ADDON_TITLES: Record<string, string> = {
           countdownTimer: 'مؤقت عروض وخصم فوري',
@@ -1990,6 +1993,26 @@ export const HomeView: React.FC<HomeViewProps> = ({
           groupOrderBillSplit: 'تقسيم الفاتورة للمجموعات',
           closedNotice: 'الطلبات المسبقة خارج الدوام',
           audioBell: 'جرس صوتي للطلبات',
+          mysteryBoxOffer: 'صندوق المفاجآت السري',
+          moodMealFinder: 'مستشار المزاج الذكي',
+          voiceSearchOrder: 'البحث الصوتي عن الأطباق',
+          bogoDealEngine: 'عرض الثاني مجاناً/بنصف السعر',
+          buildYourOwnCombo: 'مصمم الكومبو بخصم تلقائي',
+          streakRewardsCard: 'بطاقة الأختام الرقمية',
+          vipSecretMenuLock: 'القائمة السرية بكود خاص',
+          curbsidePickupCar: 'الاستلام من السيارة',
+          smartPairingSuggest: 'تنسيق المشروب والصوص',
+          calorieMacroBudget: 'حاسبة السعرات الحية بالسلة',
+          dietaryAllergyRadar: 'رادار الحساسيات والدايت',
+          pickupInstantDiscount: 'خصم الاستلام الذاتي',
+          flashQuantityScarcity: 'تنبيه الكمية المحدودة',
+          birthdayVipTreat: 'هدية المناسبات والميلاد',
+          multiCurrencySwitch: 'محوّل العملة الفوري ($/د.ع)',
+          dishCompareDrawer: 'مقارنة الأطباق جنباً إلى جنب',
+          liveKitchenLoad: 'مؤشر ضغط المطبخ الحي',
+          silentDropoffOption: 'التوصيل الصامت عند الباب',
+          charityMealRoundup: 'مشاركة الخير والتبرع بوجبة',
+          luxuryGiftPackaging: 'ترقية التغليف الفاخر VIP',
         };
         const groups = [
           { id: 'marketing', label: 'التسويق والعروض' },
@@ -2025,7 +2048,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 }}
               >
                 <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 900, color: '#fbbf24' }}>
-                  ✨ الـ 30 إضافة في باقة الأعمال الشاملة
+                  ✨ الـ 50 إضافة في باقة الأعمال الشاملة
                 </h3>
                 <button
                   type="button"

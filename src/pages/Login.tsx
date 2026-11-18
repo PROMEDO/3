@@ -4,6 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { motion, useReducedMotion } from 'motion/react';
 import {
   AlertCircle,
   ArrowRight,
@@ -111,6 +112,8 @@ export const AuthView: React.FC<AuthViewProps> = ({
   onLoginSuccess,
 }) => {
   const { t, isRtl } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
+  const homeTheme = resolveEffectiveThemeMode(_site.homeThemeMode || 'light');
   const [showPassword, setShowPassword] = useState(false);
 
   const [countryCode, setCountryCode] = useState('+964');
@@ -376,8 +379,6 @@ export const AuthView: React.FC<AuthViewProps> = ({
           flexShrink: 0,
           padding: '10px 8px',
           borderRadius: '12px',
-          border: '1px solid var(--line)',
-          background: 'var(--bg)',
           color: 'var(--ink)',
           fontSize: '13.5px',
           fontWeight: 700,
@@ -423,11 +424,10 @@ export const AuthView: React.FC<AuthViewProps> = ({
   return (
     <div
       dir={isRtl ? 'rtl' : 'ltr'}
+      data-home-theme={homeTheme}
+      className={`home-root theme-${homeTheme} mp-auth-page`}
       style={{
         minHeight: '100vh',
-        backgroundColor: 'var(--bg)',
-        backgroundImage:
-          'radial-gradient(ellipse 80% 50% at 50% -10%, color-mix(in srgb, var(--brand) 16%, transparent), transparent 70%)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -437,24 +437,12 @@ export const AuthView: React.FC<AuthViewProps> = ({
         overflow: 'hidden',
       }}
     >
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          inset: 0,
-          pointerEvents: 'none',
-          zIndex: 0,
-          backgroundImage:
-            resolveEffectiveThemeMode(_site.homeThemeMode || 'light') === 'dark'
-              ? 'linear-gradient(to right, #CBD5E1 1px, transparent 1px), linear-gradient(to bottom, #CBD5E1 1px, transparent 1px)'
-              : 'linear-gradient(to right, #64748B 1px, transparent 1px), linear-gradient(to bottom, #64748B 1px, transparent 1px)',
-          backgroundSize: '44px 44px',
-          backgroundPosition: 'center top',
-          opacity: 0.15,
-        }}
-      />
-
-      <div style={{ textAlign: 'center', marginBottom: '24px', zIndex: 1 }}>
+      <motion.div
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+        style={{ textAlign: 'center', marginBottom: '24px', position: 'relative', zIndex: 1 }}
+      >
         <a
           href="/"
           onClick={(e) => {
@@ -468,18 +456,18 @@ export const AuthView: React.FC<AuthViewProps> = ({
             {t.heroBadge}
           </p>
         </a>
-      </div>
+      </motion.div>
 
-      <div
-        className="card"
+      <motion.div
+        className="mp-auth-glass-card"
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 20, scale: 0.985 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.9, delay: prefersReducedMotion ? 0 : 0.08, ease: [0.16, 1, 0.3, 1] }}
         style={{
           width: '100%',
           maxWidth: '420px',
           padding: '24px 22px',
           borderRadius: '20px',
-          background: 'var(--surface)',
-          border: '1px solid var(--line)',
-          boxShadow: 'none',
           position: 'relative',
           zIndex: 1,
         }}
@@ -656,7 +644,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
             </form>
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 };

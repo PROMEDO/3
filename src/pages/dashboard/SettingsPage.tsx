@@ -145,7 +145,7 @@ export const SettingsPage: React.FC = () => {
       <motion.div
         initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
         style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}
       >
         <div>
@@ -172,7 +172,7 @@ export const SettingsPage: React.FC = () => {
         className="mp-jump-strip"
         initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.36, delay: prefersReducedMotion ? 0 : 0.05, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.85, delay: prefersReducedMotion ? 0 : 0.08, ease: [0.16, 1, 0.3, 1] }}
       >
         {[
           { id: 'sec-lang', label: '1. اللغة والعملة والتشغيل' },
@@ -206,7 +206,7 @@ export const SettingsPage: React.FC = () => {
           initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.06 }}
-          transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
         >
           <div className="mp-set-sec-head">
             <h2 className="mp-set-sec-title">
@@ -682,7 +682,7 @@ export const SettingsPage: React.FC = () => {
           initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.06 }}
-          transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
         >
           <div className="mp-set-sec-head">
             <h2 className="mp-set-sec-title">
@@ -923,7 +923,7 @@ export const SettingsPage: React.FC = () => {
           initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.06 }}
-          transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
         >
           <div className="mp-set-sec-head">
             <h2 className="mp-set-sec-title">
@@ -1172,7 +1172,7 @@ export const SettingsPage: React.FC = () => {
           initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.06 }}
-          transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
         >
           <div className="mp-set-sec-head">
             <h2 className="mp-set-sec-title">
@@ -1428,7 +1428,7 @@ export const SettingsPage: React.FC = () => {
           initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.06 }}
-          transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
         >
           <div className="mp-set-sec-head">
             <h2 className="mp-set-sec-title">

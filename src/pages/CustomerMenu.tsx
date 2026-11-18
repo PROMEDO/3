@@ -6,8 +6,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
+  ArrowLeftRight,
   ArrowRight,
+  BellOff,
   Calendar,
+  Car,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -18,19 +21,25 @@ import {
   Heart,
   Info,
   LayoutGrid,
+  Lock,
   MapPin,
   Menu,
   MessageCircle,
+  Mic,
   Minus,
   Plus,
   RotateCcw,
+  Scale,
   Search,
   Share2,
+  ShieldAlert,
   ShoppingBag,
+  Smile,
   Sparkles,
   Star,
   Store,
   Truck,
+  Unlock,
   Users,
   Utensils,
   X,
@@ -117,6 +126,7 @@ interface CartLine {
   extras: string[];
   img?: string;
   notes?: string;
+  caloriesNum?: number;
 }
 
 function buildDayLabels(lang: string): Array<{ key: WorkDayKey; label: string }> {
@@ -182,11 +192,24 @@ function getExtraLabel(ex: any): string {
   return String(ex?.n || ex?.label || ex?.name || '').trim();
 }
 
+function formatMoneyValue(
+  amount: number,
+  currency: string,
+  altCurrency?: { symbol: string; rate: number } | null
+): string {
+  if (altCurrency && altCurrency.rate > 0) {
+    const converted = amount / altCurrency.rate;
+    return `${converted.toFixed(2)} ${altCurrency.symbol}`;
+  }
+  return `${formatNumber(amount)} ${currency}`;
+}
+
 function getPriceDisplay(
   it: MenuItem,
   currency: string,
   activeDiscount: ActiveMenuDiscount = { active: false, type: 'percent', value: 0, sourceLabel: '' },
-  allowItemDiscounts = true
+  allowItemDiscounts = true,
+  altCurrency?: { symbol: string; rate: number } | null
 ) {
   const validSizes = (it.sizes || []).filter((s) => getSizeLabel(s));
   if (validSizes.length > 0) {
@@ -197,8 +220,8 @@ function getPriceDisplay(
     const max = applyMenuPriceDiscount(rawMax, activeDiscount);
     const main =
       min !== max
-        ? `${formatNumber(min)} - ${formatNumber(max)} ${currency}`
-        : `${formatNumber(min)} ${currency}`;
+        ? `${formatMoneyValue(min, currency, altCurrency).replace(` ${altCurrency ? altCurrency.symbol : currency}`, '')} - ${formatMoneyValue(max, currency, altCurrency)}`
+        : formatMoneyValue(min, currency, altCurrency);
     return {
       main,
       min,
@@ -216,11 +239,41 @@ function getPriceDisplay(
       : 0;
   const savings = compareBefore > finalPrice ? compareBefore - finalPrice : 0;
   return {
-    main: `${formatNumber(finalPrice)} ${currency}`,
+    main: formatMoneyValue(finalPrice, currency, altCurrency),
     min: finalPrice,
     rawBefore: compareBefore,
     savings,
   };
+}
+
+function parseCaloriesNum(raw?: string | number): number {
+  if (typeof raw === 'number' && Number.isFinite(raw)) return Math.max(0, Math.round(raw));
+  const m = String(raw || '').match(/\d+/);
+  return m ? Math.max(0, parseInt(m[0], 10)) : 0;
+}
+
+function getScarcityRemaining(itemId: string, itemName: string, maxRem: number): number {
+  const cap = Math.max(1, Math.min(25, maxRem || 4));
+  const seed = (itemId.charCodeAt(0) || 3) + (itemName?.length || 5);
+  return (seed % cap) + 1;
+}
+
+const ALLERGY_RADAR_GROUPS: Array<{ id: string; label: string; keywords: string[] }> = [
+  { id: 'nuts', label: 'بدون مكسرات', keywords: ['مكسرات', 'فستق', 'لوز', 'جوز', 'كاجو', 'بندق', 'فول سوداني', 'nut', 'peanut', 'almond'] },
+  { id: 'dairy', label: 'بدون ألبان', keywords: ['ألبان', 'البان', 'حليب', 'جبن', 'قشطة', 'زبدة', 'كريمة', 'لبن', 'dairy', 'milk', 'cheese'] },
+  { id: 'gluten', label: 'بدون غلوتين', keywords: ['غلوتين', 'قمح', 'خبز', 'صمون', 'عجين', 'طحين', 'باستا', 'بيتزا', 'برغر', 'gluten', 'wheat'] },
+  { id: 'spicy', label: 'غير حار', keywords: ['حار', 'سبايسي', 'فلفل', 'شطة', 'مقرمش حار', 'spicy', 'chili', 'hot'] },
+  { id: 'veg', label: 'نباتي', keywords: ['لحم', 'دجاج', 'سمك', 'تونة', 'روبيان', 'كباب', 'تكة', 'شاورما', 'برغر', 'ستيك', 'سجق', 'بسطرمة', 'meat', 'chicken', 'beef', 'fish'] },
+];
+
+function itemHasAllergyConflict(it: MenuItem, activeFilterIds: string[]): boolean {
+  if (activeFilterIds.length === 0) return false;
+  const haystack = `${it.allergens || ''} ${it.d || ''} ${it.n || ''}`.toLowerCase();
+  return activeFilterIds.some((fid) => {
+    const grp = ALLERGY_RADAR_GROUPS.find((g) => g.id === fid);
+    if (!grp) return false;
+    return grp.keywords.some((kw) => haystack.includes(kw.toLowerCase()));
+  });
 }
 
 function renderBadge(badge: MenuItemBadge, idx: number) {
@@ -618,6 +671,30 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
   const [splitPeople, setSplitPeople] = useState(1);
   const [scheduledSlot, setScheduledSlot] = useState('فوراً الآن');
 
+  // 20 Smart & Interactive World-Class Addons State
+  const [currencyMode, setCurrencyMode] = useState<'base' | 'alt'>('base');
+  const [selectedAllergyFilters, setSelectedAllergyFilters] = useState<string[]>([]);
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [compareModalOpen, setCompareModalOpen] = useState(false);
+  const [moodModalOpen, setMoodModalOpen] = useState(false);
+  const [selectedMood, setSelectedMood] = useState<'fast' | 'light' | 'spicy' | 'sweet'>('fast');
+  const [secretCodeInput, setSecretCodeInput] = useState('');
+  const [secretUnlocked, setSecretUnlocked] = useState(false);
+  const [isListeningVoice, setIsListeningVoice] = useState(false);
+  const [streakCount, setStreakCount] = useState<number>(() => {
+    try {
+      return Number(localStorage.getItem(`emenu_streak_${restaurantId}`) || 0);
+    } catch {
+      return 0;
+    }
+  });
+  const [isBirthdayOrder, setIsBirthdayOrder] = useState(false);
+  const [birthdayGiftMessage, setBirthdayGiftMessage] = useState('');
+  const [wantLuxuryWrap, setWantLuxuryWrap] = useState(false);
+  const [wantCharityDonation, setWantCharityDonation] = useState(false);
+  const [wantSilentDropoff, setWantSilentDropoff] = useState(false);
+  const [curbsideCarInfo, setCurbsideCarInfo] = useState('');
+
   // Spin Wheel Modal State
   const [spinModalOpen, setSpinModalOpen] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -773,7 +850,7 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
   const isOwner = Boolean(
     session &&
     (
-      session.admin ||
+      (session.admin && !session.menuLoggedOut) ||
       session.rid === restaurantId ||
       session.personalRid === restaurantId ||
       (rest?.parentRid && (session.rid === rest.parentRid || session.personalRid === rest.parentRid))
@@ -978,11 +1055,95 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
   const minOrderAmount = minOrderEnabled ? Number(addons.minOrder?.amount) || 0 : 0;
   const belowMinOrder = minOrderEnabled && subtotal < minOrderAmount;
 
+  // Multi-currency conversion helper
+  const activeAltCurrency =
+    addons.multiCurrencySwitch?.enabled &&
+    currencyMode === 'alt' &&
+    Number(addons.multiCurrencySwitch.exchangeRate || 0) > 0
+      ? {
+          symbol: addons.multiCurrencySwitch.altSymbol || '$',
+          rate: Number(addons.multiCurrencySwitch.exchangeRate || 1500),
+        }
+      : null;
+  const fmtMoney = (amt: number) => formatMoneyValue(amt, currency, activeAltCurrency);
+
+  // BOGO Second Item Discount
+  const bogoDiscountPct = addons.bogoDealEngine?.enabled
+    ? Math.max(0, Math.min(100, Number(addons.bogoDealEngine.secondItemDiscountPercent) || 50))
+    : 0;
+  const bogoDiscountAmt = useMemo(() => {
+    if (!addons.bogoDealEngine?.enabled || totalCount < 2 || bogoDiscountPct <= 0) return 0;
+    const unitList: number[] = [];
+    cart.forEach((line) => {
+      for (let i = 0; i < line.qty; i++) unitList.push(line.unitPrice);
+    });
+    unitList.sort((a, b) => a - b);
+    const pairs = Math.floor(unitList.length / 2);
+    let saved = 0;
+    for (let i = 0; i < pairs; i++) {
+      saved += Math.round((unitList[i] * bogoDiscountPct) / 100);
+    }
+    return saved;
+  }, [addons.bogoDealEngine?.enabled, bogoDiscountPct, cart, totalCount]);
+
+  // Build Your Own Combo Discount
+  const comboRequired = Math.max(2, Number(addons.buildYourOwnCombo?.requiredCount) || 3);
+  const comboPct = addons.buildYourOwnCombo?.enabled
+    ? Math.max(0, Math.min(60, Number(addons.buildYourOwnCombo.discountPercent) || 12))
+    : 0;
+  const comboDiscountAmt =
+    addons.buildYourOwnCombo?.enabled && totalCount >= comboRequired && comboPct > 0
+      ? Math.round((Math.max(0, subtotal - bogoDiscountAmt) * comboPct) / 100)
+      : 0;
+
+  // Pickup Instant Discount
+  const pickupPct =
+    addons.pickupInstantDiscount?.enabled && orderType === 'pickup'
+      ? Math.max(0, Math.min(60, Number(addons.pickupInstantDiscount.discountPercent) || 10))
+      : 0;
+  const pickupDiscountAmt =
+    pickupPct > 0
+      ? Math.round((Math.max(0, subtotal - bogoDiscountAmt - comboDiscountAmt) * pickupPct) / 100)
+      : 0;
+
+  // Luxury Gift Packaging & Charity Roundup
+  const luxuryWrapFee =
+    addons.luxuryGiftPackaging?.enabled && wantLuxuryWrap
+      ? Math.max(0, Number(addons.luxuryGiftPackaging.feeAmount) || 0)
+      : 0;
+  const charityDonationAmt =
+    addons.charityMealRoundup?.enabled && wantCharityDonation
+      ? Math.max(0, Number(addons.charityMealRoundup.donationAmount) || 0)
+      : 0;
+
+  // Calorie budget tracker across cart items
+  const totalCartCalories = useMemo(
+    () =>
+      cart.reduce((sum, line) => {
+        const directCal = line.caloriesNum || 0;
+        if (directCal > 0) return sum + directCal * line.qty;
+        const found = allItems.find((i) => i.id === line.itemId);
+        return sum + parseCaloriesNum(found?.calories) * line.qty;
+      }, 0),
+    [cart, allItems]
+  );
+
   const finalTotal =
-    Math.max(0, subtotal - couponDiscount - firstOrderDiscountAmt - spinDiscountAmt) +
+    Math.max(
+      0,
+      subtotal -
+        couponDiscount -
+        firstOrderDiscountAmt -
+        spinDiscountAmt -
+        bogoDiscountAmt -
+        comboDiscountAmt -
+        pickupDiscountAmt
+    ) +
     effectiveDeliveryFee +
     serviceFeeAmount +
-    activeTipAmount;
+    activeTipAmount +
+    luxuryWrapFee +
+    charityDonationAmt;
 
   const freeDeliveryRemaining = Math.max(0, freeDeliveryMin - subtotal);
   const freeDeliveryPct =
@@ -1061,10 +1222,11 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
     const catObj = allCategories.find((c) => c.id === it.cat);
     const key = `${it.id}|||`;
     const discountedUnit = applyMenuPriceDiscount(Number(it.pr) || 0, activeMenuDiscount);
+    const calNum = parseCaloriesNum(it.calories);
     setCart((prev) => {
       const idx = prev.findIndex((x) => x.key === key);
       if (idx >= 0) {
-        return prev.map((x, i) => (i === idx ? { ...x, qty: x.qty + 1, unitPrice: discountedUnit } : x));
+        return prev.map((x, i) => (i === idx ? { ...x, qty: x.qty + 1, unitPrice: discountedUnit, caloriesNum: calNum } : x));
       }
       return [
         ...prev,
@@ -1078,10 +1240,83 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
           choices: [],
           extras: [],
           img: it.img,
+          caloriesNum: calNum,
         },
       ];
     });
     showToast(`تمت إضافة "${it.n}" للسلة`);
+  };
+
+  const addSpecialCustomLine = (id: string, name: string, price: number, notes?: string) => {
+    setCart((prev) => {
+      const idx = prev.findIndex((x) => x.key === id);
+      if (idx >= 0) {
+        return prev.map((x, i) => (i === idx ? { ...x, qty: x.qty + 1, unitPrice: price } : x));
+      }
+      return [
+        ...prev,
+        {
+          key: id,
+          itemId: id,
+          name,
+          unitPrice: price,
+          qty: 1,
+          choices: [],
+          extras: [],
+          notes,
+        },
+      ];
+    });
+    showToast(`تمت إضافة "${name}" للسلة ✓`);
+  };
+
+  const toggleCompareItem = (itemId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    const maxCmp = Math.max(2, Math.min(4, Number(addons.dishCompareDrawer?.maxCompare) || 2));
+    setCompareIds((prev) => {
+      if (prev.includes(itemId)) {
+        return prev.filter((x) => x !== itemId);
+      }
+      if (prev.length >= maxCmp) {
+        showToast(`يمكنك مقارنة حتى ${maxCmp} أطباق فقط`);
+        return prev;
+      }
+      return [...prev, itemId];
+    });
+  };
+
+  const handleVoiceSearchStart = () => {
+    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRec) {
+      showToast('البحث الصوتي غير مدعوم في هذا المتصفح، يمكنك الكتابة مباشرة');
+      return;
+    }
+    try {
+      const rec = new SpeechRec();
+      rec.lang = addons.voiceSearchOrder?.lang || 'ar-IQ';
+      rec.interimResults = false;
+      rec.maxAlternatives = 1;
+      setIsListeningVoice(true);
+      rec.onresult = (event: any) => {
+        const transcript = event?.results?.[0]?.[0]?.transcript || '';
+        if (transcript) {
+          setSearchQuery(transcript.trim());
+          showToast(`تم سماع: "${transcript.trim()}"`);
+        }
+        setIsListeningVoice(false);
+      };
+      rec.onerror = () => {
+        setIsListeningVoice(false);
+        showToast('تعذر التقاط الصوت، تأكد من إذن المايكروفون');
+      };
+      rec.onend = () => {
+        setIsListeningVoice(false);
+      };
+      rec.start();
+    } catch {
+      setIsListeningVoice(false);
+      showToast('تعذر تشغيل البحث الصوتي حالياً');
+    }
   };
 
   const modalBaseRaw = activeProduct
@@ -1106,6 +1341,7 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
     const chSorted = [...selectedChoices].sort();
     const exSorted = [...selectedExtras].map((e) => getExtraLabel(e)).sort();
     const key = `${activeProduct.id}|${sizeName}|${chSorted.join(',')}|${exSorted.join(',')}`;
+    const calNum = parseCaloriesNum(selectedSize?.cal || activeProduct.calories);
 
     setCart((prev) => {
       const idx = prev.findIndex((x) => x.key === key);
@@ -1125,6 +1361,7 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
           choices: selectedChoices,
           extras: selectedExtras.map((e) => getExtraLabel(e)),
           img: activeProduct.img,
+          caloriesNum: calNum,
         },
       ];
     });
@@ -1303,6 +1540,22 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
       const existingOrdersCount = getCollection<Order>('orders').filter((o) => o.rid === restaurantId).length;
       const fallbackOrderSeq = Math.max(Number(rest.o || 0) || 0, existingOrdersCount) + 1;
 
+      const extraOrderNotes: string[] = [];
+      if (cu.nt) extraOrderNotes.push(cu.nt);
+      if (addons.birthdayVipTreat?.enabled && isBirthdayOrder) {
+        extraOrderNotes.push(`🎂 طلب عيد ميلاد (${addons.birthdayVipTreat.freeTreatNote || 'هدية مجانية'})${birthdayGiftMessage.trim() ? `: ${birthdayGiftMessage.trim()}` : ''}`);
+      }
+      if (addons.silentDropoffOption?.enabled && orderType === 'delivery' && wantSilentDropoff) {
+        extraOrderNotes.push(`🤫 ${addons.silentDropoffOption.label || 'توصيل صامت بدون طرق الباب'}`);
+      }
+      if (addons.curbsidePickupCar?.enabled && orderType === 'pickup' && curbsideCarInfo.trim()) {
+        extraOrderNotes.push(`🚗 سيارة الاستلام: ${curbsideCarInfo.trim()}`);
+      }
+      if (addons.streakRewardsCard?.enabled && streakCount >= Math.max(2, Number(addons.streakRewardsCard.targetOrders) || 5)) {
+        extraOrderNotes.push(`🔥 مكافأة سلسلة الطلبات: ${addons.streakRewardsCard.rewardTitle || 'مكافأة مجانية'}`);
+      }
+      const combinedNotes = extraOrderNotes.join(' | ');
+
       const savedOrder = await putItemAndSync<Order>(`orders/${orderId}`, {
         id: orderId,
         rid: restaurantId,
@@ -1311,12 +1564,12 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
         items: orderItems,
         tot: finalTotal,
         total: finalTotal,
-        cu,
+        cu: { ...cu, nt: combinedNotes },
         type: orderType,
         name: cu.n,
         phone: cu.ph,
         address: cu.address,
-        notes: cu.nt || undefined,
+        notes: combinedNotes || undefined,
         table: tableVal,
         serviceFee: serviceFeeAmount > 0 ? serviceFeeAmount : undefined,
         discount: couponDiscount > 0 ? couponDiscount : undefined,
@@ -1364,6 +1617,15 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
       if (spinDiscountAmt > 0 && spinWonReward) {
         lines.push(`مكافأة (${spinWonReward.label}): -${formatNumber(spinDiscountAmt)} ${currency}`);
       }
+      if (bogoDiscountAmt > 0) {
+        lines.push(`${addons.bogoDealEngine?.title || 'عرض القطعة الثانية'}: -${formatNumber(bogoDiscountAmt)} ${currency}`);
+      }
+      if (comboDiscountAmt > 0) {
+        lines.push(`${addons.buildYourOwnCombo?.title || 'خصم الكومبو'}: -${formatNumber(comboDiscountAmt)} ${currency}`);
+      }
+      if (pickupDiscountAmt > 0) {
+        lines.push(`${addons.pickupInstantDiscount?.title || 'خصم الاستلام الفوري'}: -${formatNumber(pickupDiscountAmt)} ${currency}`);
+      }
       if (qualifiesFreeGift && addons.freeGiftThreshold?.giftName) {
         lines.push(`هدية مجانية: ${addons.freeGiftThreshold.giftName}`);
       }
@@ -1375,6 +1637,12 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
       }
       if (serviceFeeAmount > 0) {
         lines.push(`${serviceFeeLabel}: ${formatNumber(serviceFeeAmount)} ${currency}`);
+      }
+      if (luxuryWrapFee > 0) {
+        lines.push(`تغليف هدايا فاخر: ${formatNumber(luxuryWrapFee)} ${currency}`);
+      }
+      if (charityDonationAmt > 0) {
+        lines.push(`${addons.charityMealRoundup?.title || 'مساهمة خيرية'}: ${formatNumber(charityDonationAmt)} ${currency}`);
       }
       if (activeTipAmount > 0) {
         lines.push(`إكرامية: ${formatNumber(activeTipAmount)} ${currency}`);
@@ -1399,7 +1667,7 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
       lines.push(`الإجمالي: ${formatNumber(finalTotal)} ${currency}`);
       if (cu.n) lines.push(`الزبون: ${cu.n}`);
       if (cu.ph) lines.push(`الهاتف: ${cu.ph}`);
-      if (cu.nt) lines.push(`ملاحظات: ${cu.nt}`);
+      if (combinedNotes) lines.push(`ملاحظات: ${combinedNotes}`);
 
       const waUrl = useWhatsapp && targetWaPhone ? waLink(targetWaPhone, lines.join('\n')) : '';
 
@@ -1414,12 +1682,18 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
         document.body.removeChild(a);
       }
 
-      // Persist Quick Reorder, First Order & Loyalty Points
+      // Persist Quick Reorder, First Order, Streak & Loyalty Points
       try {
         localStorage.setItem(`emenu_last_order_${restaurantId}`, JSON.stringify(cart));
         setLastSavedOrderCart(cart);
         localStorage.setItem(`emenu_ordered_${restaurantId}`, '1');
         setHasOrderedBefore(true);
+        if (addons.streakRewardsCard?.enabled) {
+          const streakTarget = Math.max(2, Number(addons.streakRewardsCard.targetOrders) || 5);
+          const nextStreak = streakCount >= streakTarget ? 1 : streakCount + 1;
+          localStorage.setItem(`emenu_streak_${restaurantId}`, String(nextStreak));
+          setStreakCount(nextStreak);
+        }
         if (earnedLoyaltyPoints > 0) {
           const nextPts = loyaltyBalance + earnedLoyaltyPoints;
           localStorage.setItem(`emenu_points_${restaurantId}`, String(nextPts));
@@ -1435,6 +1709,11 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
       setAppliedCoupon('');
       setCouponInput('');
       setTipAmount(0);
+      setIsBirthdayOrder(false);
+      setBirthdayGiftMessage('');
+      setWantLuxuryWrap(false);
+      setWantCharityDonation(false);
+      setWantSilentDropoff(false);
       setCheckoutStep('done');
       showToast(
         orderChannel === 'telegram'
@@ -1649,6 +1928,26 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {addons.multiCurrencySwitch?.enabled && (
+              <button
+                type="button"
+                className="pm-order-type-pill"
+                onClick={() => setCurrencyMode((m) => (m === 'base' ? 'alt' : 'base'))}
+                title="تبديل العملة"
+                style={{
+                  height: '34px',
+                  padding: '0 10px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  gap: '5px',
+                  borderColor: currencyMode === 'alt' ? 'var(--pm-brand)' : undefined,
+                  color: currencyMode === 'alt' ? accentText : undefined,
+                }}
+              >
+                <ArrowLeftRight size={13} />
+                <span dir="ltr">{currencyMode === 'alt' ? (addons.multiCurrencySwitch.altSymbol || '$') : currency}</span>
+              </button>
+            )}
             <button
               type="button"
               className="pm-icon-btn"
@@ -1781,9 +2080,38 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                   التوصيل: {addons.deliveryEtaTracker.etaText || '30 - 45 دقيقة'}
                 </span>
               )}
+              {addons.liveKitchenLoad?.enabled && (() => {
+                const lvl = addons.liveKitchenLoad.level || 'moderate';
+                const cfg =
+                  lvl === 'calm'
+                    ? { label: 'ضغط المطبخ: هادئ ⚡', bg: 'rgba(16, 185, 129, 0.14)', border: 'rgba(16, 185, 129, 0.32)', color: isLightMenu ? '#047857' : '#34D399' }
+                    : lvl === 'busy'
+                    ? { label: 'ضغط المطبخ: مزدحم 🔥', bg: 'rgba(239, 68, 68, 0.14)', border: 'rgba(239, 68, 68, 0.32)', color: isLightMenu ? '#b91c1c' : '#FCA5A5' }
+                    : { label: 'ضغط المطبخ: متوسط ⏱️', bg: 'rgba(245, 158, 11, 0.14)', border: 'rgba(245, 158, 11, 0.32)', color: isLightMenu ? '#b45309' : '#FCD34D' };
+                return (
+                  <span
+                    className="pm-shape-pill"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: cfg.bg,
+                      border: `1px solid ${cfg.border}`,
+                      color: cfg.color,
+                      padding: '2px 9px',
+                      fontWeight: 700,
+                    }}
+                  >
+                    <span>{cfg.label}</span>
+                    {addons.liveKitchenLoad.customNote && (
+                      <span style={{ opacity: 0.85 }}>({addons.liveKitchenLoad.customNote})</span>
+                    )}
+                  </span>
+                );
+              })()}
               {freeDeliveryEnabled && freeDeliveryMin > 0 && orderType === 'delivery' ? (
                 <span style={{ color: accentText, fontWeight: 700 }}>
-                  توصيل مجاني فوق {formatNumber(freeDeliveryMin)} {currency}
+                  توصيل مجاني فوق {fmtMoney(freeDeliveryMin)}
                 </span>
               ) : null}
               {!openNow && (rest.acceptOrdersWhenClosed || addons.closedNotice?.enabled) && (
@@ -2093,8 +2421,295 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                   cursor: 'pointer',
                 }}
               >
-                نداء النادل
               </button>
+            )}
+          </div>
+        )}
+
+        {/* Active Smart Deal Pills: BOGO, Build-Your-Own Combo, Pickup Instant Discount, Mood Finder */}
+        {(addons.bogoDealEngine?.enabled ||
+          addons.buildYourOwnCombo?.enabled ||
+          (addons.pickupInstantDiscount?.enabled && orderType === 'pickup') ||
+          addons.moodMealFinder?.enabled) && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '10px' }}>
+            {addons.moodMealFinder?.enabled && (
+              <button
+                type="button"
+                className="pm-shape-btn"
+                onClick={() => setMoodModalOpen(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: brandColor,
+                  color: brandInk,
+                  border: '1px solid color-mix(in srgb, var(--pm-brand) 45%, transparent)',
+                  padding: '7px 12px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                <Smile size={15} />
+                <span>{addons.moodMealFinder.buttonText || 'اختر وجبتك حسب مزاجك'}</span>
+              </button>
+            )}
+            {addons.bogoDealEngine?.enabled && (
+              <span
+                className="pm-shape-pill"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '6px 11px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  background: 'rgba(16, 185, 129, 0.14)',
+                  border: '1px solid rgba(16, 185, 129, 0.35)',
+                  color: accentText,
+                }}
+              >
+                🎁 {addons.bogoDealEngine.title || 'اطلب وجبتين والقطعة الثانية بخصم'} ({addons.bogoDealEngine.secondItemDiscountPercent || 50}%)
+              </span>
+            )}
+            {addons.buildYourOwnCombo?.enabled && (
+              <span
+                className="pm-shape-pill"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '6px 11px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  background: 'rgba(168, 85, 247, 0.14)',
+                  border: '1px solid rgba(168, 85, 247, 0.32)',
+                  color: isLightMenu ? '#6b21a8' : '#d8b4fe',
+                }}
+              >
+                🍔 {addons.buildYourOwnCombo.title || 'صمّم وجبتك'} ({addons.buildYourOwnCombo.requiredCount || 3}+ أصناف = خصم {addons.buildYourOwnCombo.discountPercent || 12}%)
+              </span>
+            )}
+            {addons.pickupInstantDiscount?.enabled && orderType === 'pickup' && (
+              <span
+                className="pm-shape-pill"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '6px 11px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  background: 'rgba(245, 158, 11, 0.15)',
+                  border: '1px solid rgba(245, 158, 11, 0.35)',
+                  color: isLightMenu ? '#b45309' : '#fcd34d',
+                }}
+              >
+                🏃 {addons.pickupInstantDiscount.title || 'خصم الاستلام الفوري'}: {addons.pickupInstantDiscount.discountPercent || 10}% تلقائي
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Streak Rewards Progress Card */}
+        {addons.streakRewardsCard?.enabled && (() => {
+          const target = Math.max(2, Number(addons.streakRewardsCard.targetOrders) || 5);
+          const pct = Math.min(100, Math.round((streakCount / target) * 100));
+          const unlocked = streakCount >= target;
+          return (
+            <div
+              className="pm-addon-card"
+              style={{
+                marginTop: '10px',
+                padding: '10px 14px',
+                borderColor: unlocked ? '#10b981' : 'var(--pm-line)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '6px', fontSize: '12.5px', fontWeight: 800 }}>
+                <span style={{ color: 'var(--pm-ink)' }}>
+                  🔥 سلسلة طلباتك ({streakCount} / {target}) — المكافأة: <strong style={{ color: accentText }}>{addons.streakRewardsCard.rewardTitle || 'وجبة مجانية'}</strong>
+                </span>
+                <span style={{ fontSize: '11.5px', color: unlocked ? '#10b981' : 'var(--pm-muted)' }}>
+                  {unlocked ? '🎉 مفتوحة وتضاف مع طلبك القادم!' : `متبقي ${target - streakCount} طلب`}
+                </span>
+              </div>
+              <div style={{ height: '6px', borderRadius: '99px', background: 'rgba(148,163,184,0.2)', overflow: 'hidden' }}>
+                <div style={{ width: `${pct}%`, height: '100%', background: unlocked ? '#10b981' : brandColor, transition: 'width 0.3s ease' }} />
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Mystery Box Offer Card */}
+        {addons.mysteryBoxOffer?.enabled && (
+          <div
+            className="pm-addon-card"
+            style={{
+              marginTop: '10px',
+              padding: '12px 14px',
+              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(245, 158, 11, 0.12))',
+              borderColor: 'color-mix(in srgb, var(--pm-brand) 45%, transparent)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{ flex: 1, minWidth: '180px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '3px' }}>
+                <span className="pm-badge gold">🎁 صندوق المفاجآت</span>
+                <span className="pm-badge red">متبقي {addons.mysteryBoxOffer.remainingCount || 5} فقط</span>
+              </div>
+              <b style={{ display: 'block', fontSize: '14px', color: 'var(--pm-ink)' }}>
+                {addons.mysteryBoxOffer.title || 'صندوق مفاجآت الشيف السري'}
+              </b>
+              <span style={{ fontSize: '12px', color: 'var(--pm-muted)' }}>
+                {addons.mysteryBoxOffer.subtitle || 'وجبات مختارة بعناية بنصف السعر — الكمية محدودة اليوم!'}
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+              <div style={{ textAlign: 'end' }}>
+                <b className="tabular-nums" style={{ display: 'block', fontSize: '15px', fontWeight: 900, color: accentText }}>
+                  {fmtMoney(Number(addons.mysteryBoxOffer.price) || 8000)}
+                </b>
+                {(Number(addons.mysteryBoxOffer.originalPrice) || 0) > (Number(addons.mysteryBoxOffer.price) || 0) && (
+                  <span className="tabular-nums" style={{ fontSize: '11.5px', color: 'var(--pm-muted)', textDecoration: 'line-through' }}>
+                    {fmtMoney(Number(addons.mysteryBoxOffer.originalPrice) || 16000)}
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                className="pm-shape-btn"
+                onClick={() =>
+                  addSpecialCustomLine(
+                    'mystery_box_offer',
+                    addons.mysteryBoxOffer?.title || 'صندوق مفاجآت الشيف',
+                    Number(addons.mysteryBoxOffer?.price) || 8000,
+                    addons.mysteryBoxOffer?.subtitle
+                  )
+                }
+                style={{
+                  background: brandColor,
+                  color: brandInk,
+                  border: '1px solid color-mix(in srgb, var(--pm-brand) 45%, transparent)',
+                  padding: '8px 12px',
+                  fontSize: '12.5px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                + أضف الصندوق
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* VIP Secret Menu Lock Card */}
+        {addons.vipSecretMenuLock?.enabled && (
+          <div
+            className="pm-addon-card"
+            style={{
+              marginTop: '10px',
+              padding: '11px 14px',
+              borderColor: secretUnlocked ? '#f59e0b' : 'var(--pm-line)',
+              background: secretUnlocked ? 'rgba(245, 158, 11, 0.1)' : undefined,
+            }}
+          >
+            {!secretUnlocked ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', fontWeight: 800, color: 'var(--pm-ink)' }}>
+                  <Lock size={15} style={{ color: '#f59e0b' }} />
+                  <span>قائمة كبار الشخصيات السرية (VIP) — أدخل الرمز لفتح الطبق المخفي</span>
+                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <input
+                    type="text"
+                    dir="ltr"
+                    value={secretCodeInput}
+                    onChange={(e) => setSecretCodeInput(e.target.value)}
+                    placeholder="الرمز السري..."
+                    style={{
+                      width: '110px',
+                      padding: '6px 10px',
+                      borderRadius: '9px',
+                      border: '1px solid var(--pm-line)',
+                      background: 'var(--pm-soft)',
+                      color: 'var(--pm-ink)',
+                      fontSize: '12.5px',
+                      fontWeight: 800,
+                      textAlign: 'center',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="pm-shape-btn"
+                    onClick={() => {
+                      const expected = (addons.vipSecretMenuLock?.secretCode || 'VIP777').trim().toUpperCase();
+                      if (secretCodeInput.trim().toUpperCase() === expected) {
+                        setSecretUnlocked(true);
+                        showToast('تم فتح القائمة السرية بنجاح 🔓✨');
+                      } else {
+                        showToast('الرمز السري غير صحيح، تأكد منه من إدارة المتجر');
+                      }
+                    }}
+                    style={{
+                      background: brandColor,
+                      color: brandInk,
+                      border: 'none',
+                      padding: '6px 12px',
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    فتح
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
+                <div>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11.5px', fontWeight: 900, color: '#f59e0b' }}>
+                    <Unlock size={13} /> طبق VIP السري مفتوح لك!
+                  </span>
+                  <b style={{ display: 'block', fontSize: '14px', color: 'var(--pm-ink)' }}>
+                    {addons.vipSecretMenuLock.dishName || 'برغر الذهب السري (VIP)'}
+                  </b>
+                  <span style={{ fontSize: '12px', color: 'var(--pm-muted)' }}>
+                    {addons.vipSecretMenuLock.dishDesc || 'خلطة خاصة جداً متوفرة لحاملي الرمز السري فقط'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <b className="tabular-nums" style={{ color: accentText, fontSize: '14px', fontWeight: 900 }}>
+                    {fmtMoney(Number(addons.vipSecretMenuLock.dishPrice) || 12000)}
+                  </b>
+                  <button
+                    type="button"
+                    className="pm-shape-btn"
+                    onClick={() =>
+                      addSpecialCustomLine(
+                        'vip_secret_dish',
+                        addons.vipSecretMenuLock?.dishName || 'طبق VIP السري',
+                        Number(addons.vipSecretMenuLock?.dishPrice) || 12000,
+                        'طبق القائمة السرية VIP'
+                      )
+                    }
+                    style={{
+                      background: '#f59e0b',
+                      color: '#0f172a',
+                      border: 'none',
+                      padding: '7px 12px',
+                      fontSize: '12px',
+                      fontWeight: 900,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    + أضف للسلة
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         )}
@@ -2207,6 +2822,39 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                 )}
               </div>
             )}
+
+            {/* Dietary & Allergy Radar Filter Chips */}
+            {addons.dietaryAllergyRadar?.enabled && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto', marginTop: '7px', paddingBottom: '2px' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', fontWeight: 800, color: 'var(--pm-muted)', flexShrink: 0 }}>
+                  <ShieldAlert size={13} style={{ color: '#f59e0b' }} />
+                  رادار الحساسية:
+                </span>
+                {ALLERGY_RADAR_GROUPS.map((grp) => {
+                  const active = selectedAllergyFilters.includes(grp.id);
+                  return (
+                    <button
+                      key={grp.id}
+                      type="button"
+                      className={`pm-filter-chip ${active ? 'active' : ''}`}
+                      onClick={() =>
+                        setSelectedAllergyFilters((prev) =>
+                          prev.includes(grp.id) ? prev.filter((x) => x !== grp.id) : [...prev, grp.id]
+                        )
+                      }
+                      style={{
+                        background: active ? '#f59e0b' : undefined,
+                        color: active ? '#0f172a' : undefined,
+                        borderColor: active ? '#f59e0b' : undefined,
+                        fontSize: '11.5px',
+                      }}
+                    >
+                      {grp.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -2282,10 +2930,12 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       {catItems.map((it) => {
                         const qty = getItemCartQty(it.id);
-                        const priceInfo = getPriceDisplay(it, currency, activeMenuDiscount, resolvedPlan.perms.itemDiscounts);
+                        const priceInfo = getPriceDisplay(it, currency, activeMenuDiscount, resolvedPlan.perms.itemDiscounts, activeAltCurrency);
                         const itemEval = itemEvalMap.get(it.id) || evaluateItemAvailability(it, cat, nowDate);
                         const unavailable = !itemEval.available;
                         const isFav = favoriteIds.includes(it.id);
+                        const hasAllergyRisk = addons.dietaryAllergyRadar?.enabled && itemHasAllergyConflict(it, selectedAllergyFilters);
+                        const isCompared = compareIds.includes(it.id);
 
                         return (
                           <article
@@ -2374,31 +3024,63 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                                         fontWeight: 600,
                                       }}
                                     >
-                                      {formatNumber(priceInfo.rawBefore)} {currency}
+                                      {fmtMoney(priceInfo.rawBefore)}
+                                    </span>
+                                  )}
+                                  {addons.flashQuantityScarcity?.enabled && !unavailable && (
+                                    <span style={{ fontSize: '10.5px', fontWeight: 800, padding: '1px 6px', borderRadius: '6px', background: 'rgba(249, 115, 22, 0.14)', color: isLightMenu ? '#c2410c' : '#fdba74' }}>
+                                      🔥 {addons.flashQuantityScarcity.badgePrefix || 'متبقي'} {getScarcityRemaining(it.id, it.n, addons.flashQuantityScarcity.defaultRemaining || 4)}
+                                    </span>
+                                  )}
+                                  {hasAllergyRisk && (
+                                    <span style={{ fontSize: '10.5px', fontWeight: 800, padding: '1px 6px', borderRadius: '6px', background: 'rgba(245, 158, 11, 0.18)', color: isLightMenu ? '#92400e' : '#fde68a' }}>
+                                      ⚠️ {addons.dietaryAllergyRadar?.warningText || 'تحقق من المكونات'}
                                     </span>
                                   )}
                                 </div>
                               </div>
 
-                              <button
-                                type="button"
-                                className="pm-list-add-btn"
-                                disabled={unavailable}
-                                aria-label={`إضافة ${it.n} للسلة`}
-                                onClick={(e) => quickAddOrOpenModal(it, e)}
-                                style={{
-                                  width: unavailable ? 'auto' : '32px',
-                                  padding: unavailable ? '0 8px' : 0,
-                                  background: brandColor,
-                                  color: brandInk,
-                                }}
-                              >
-                                {unavailable ? (
-                                  itemEval.outOfSchedule ? <Clock size={14} /> : 'نفد'
-                                ) : (
-                                  <Plus size={16} strokeWidth={2.6} />
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                                {addons.dishCompareDrawer?.enabled && (
+                                  <button
+                                    type="button"
+                                    aria-label={`مقارنة ${it.n}`}
+                                    onClick={(e) => toggleCompareItem(it.id, e)}
+                                    style={{
+                                      width: '30px',
+                                      height: '30px',
+                                      borderRadius: '9px',
+                                      border: isCompared ? '1.5px solid var(--pm-brand)' : '1px solid var(--pm-line)',
+                                      background: isCompared ? brandColor : 'var(--pm-soft)',
+                                      color: isCompared ? brandInk : 'var(--pm-muted)',
+                                      display: 'grid',
+                                      placeItems: 'center',
+                                      cursor: 'pointer',
+                                    }}
+                                  >
+                                    <Scale size={13} />
+                                  </button>
                                 )}
-                              </button>
+                                <button
+                                  type="button"
+                                  className="pm-list-add-btn"
+                                  disabled={unavailable}
+                                  aria-label={`إضافة ${it.n} للسلة`}
+                                  onClick={(e) => quickAddOrOpenModal(it, e)}
+                                  style={{
+                                    width: unavailable ? 'auto' : '32px',
+                                    padding: unavailable ? '0 8px' : 0,
+                                    background: brandColor,
+                                    color: brandInk,
+                                  }}
+                                >
+                                  {unavailable ? (
+                                    itemEval.outOfSchedule ? <Clock size={14} /> : 'نفد'
+                                  ) : (
+                                    <Plus size={16} strokeWidth={2.6} />
+                                  )}
+                                </button>
+                              </div>
                             </div>
                           </article>
                         );
@@ -2419,11 +3101,13 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                     >
                       {catItems.map((it) => {
                         const qty = getItemCartQty(it.id);
-                        const priceInfo = getPriceDisplay(it, currency, activeMenuDiscount, resolvedPlan.perms.itemDiscounts);
+                        const priceInfo = getPriceDisplay(it, currency, activeMenuDiscount, resolvedPlan.perms.itemDiscounts, activeAltCurrency);
                         const itemEval = itemEvalMap.get(it.id) || evaluateItemAvailability(it, cat, nowDate);
                         const unavailable = !itemEval.available;
                         const isCompact = layout === 'grid4' || layout === 'grid3';
                         const isFav = favoriteIds.includes(it.id);
+                        const hasAllergyRisk = addons.dietaryAllergyRadar?.enabled && itemHasAllergyConflict(it, selectedAllergyFilters);
+                        const isCompared = compareIds.includes(it.id);
 
                         return (
                           <article
@@ -2473,10 +3157,48 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                                   <Heart size={layout === 'grid4' ? 10 : 12} color="#f87171" fill={isFav ? '#f87171' : 'none'} />
                                 </button>
                               )}
+                              {addons.dishCompareDrawer?.enabled && (
+                                <button
+                                  type="button"
+                                  aria-label="مقارنة"
+                                  onClick={(e) => toggleCompareItem(it.id, e)}
+                                  style={{
+                                    position: 'absolute',
+                                    bottom: '6px',
+                                    insetInlineStart: '6px',
+                                    width: layout === 'grid4' ? '20px' : '24px',
+                                    height: layout === 'grid4' ? '20px' : '24px',
+                                    borderRadius: '7px',
+                                    border: isCompared ? '1.5px solid var(--pm-brand)' : '1px solid rgba(255,255,255,0.35)',
+                                    background: isCompared ? brandColor : 'rgba(15,23,42,0.72)',
+                                    color: isCompared ? brandInk : '#ffffff',
+                                    display: 'grid',
+                                    placeItems: 'center',
+                                    cursor: 'pointer',
+                                    zIndex: 3,
+                                  }}
+                                >
+                                  <Scale size={layout === 'grid4' ? 10 : 11} />
+                                </button>
+                              )}
                             </div>
 
                             <div className="pm-menu-card-body">
                               <b className="pm-menu-card-title">{it.n}</b>
+                              {(addons.flashQuantityScarcity?.enabled && !unavailable) || hasAllergyRisk ? (
+                                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '3px' }}>
+                                  {addons.flashQuantityScarcity?.enabled && !unavailable && (
+                                    <span style={{ fontSize: layout === 'grid4' ? '9px' : '10px', fontWeight: 800, padding: '1px 5px', borderRadius: '5px', background: 'rgba(249, 115, 22, 0.14)', color: isLightMenu ? '#c2410c' : '#fdba74' }}>
+                                      🔥 {addons.flashQuantityScarcity.badgePrefix || 'متبقي'} {getScarcityRemaining(it.id, it.n, addons.flashQuantityScarcity.defaultRemaining || 4)}
+                                    </span>
+                                  )}
+                                  {hasAllergyRisk && (
+                                    <span style={{ fontSize: layout === 'grid4' ? '9px' : '10px', fontWeight: 800, padding: '1px 5px', borderRadius: '5px', background: 'rgba(245, 158, 11, 0.2)', color: isLightMenu ? '#92400e' : '#fde68a' }}>
+                                      ⚠️ حساسية
+                                    </span>
+                                  )}
+                                </div>
+                              ) : null}
 
                               <div className="pm-menu-card-footer">
                                 <div style={{ minWidth: 0 }}>
@@ -2488,7 +3210,7 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                                   </span>
                                   {priceInfo.rawBefore > 0 && (
                                     <span className="pm-menu-card-old-price tabular-nums">
-                                      {formatNumber(priceInfo.rawBefore)} {currency}
+                                      {fmtMoney(priceInfo.rawBefore)}
                                     </span>
                                   )}
                                 </div>
@@ -2763,6 +3485,33 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
         </div>
       )}
 
+      {/* Floating Compare Dishes Trigger Bar */}
+      {addons.dishCompareDrawer?.enabled && compareIds.length > 0 && !cartOpen && (
+        <button
+          type="button"
+          className="pm-float-btn"
+          onClick={() => setCompareModalOpen(true)}
+          style={{
+            position: 'fixed',
+            bottom: totalCount > 0 ? '96px' : '20px',
+            insetInlineStart: '16px',
+            zIndex: 46,
+            background: brandColor,
+            color: brandInk,
+            padding: '10px 14px',
+            fontWeight: 800,
+            fontSize: '12.5px',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <Scale size={15} />
+          <span>مقارنة الأطباق ({compareIds.length})</span>
+        </button>
+      )}
+
       {/* Floating Bottom Cart & Free Delivery Dock */}
       {totalCount > 0 && !cartOpen && (
         <div className="pm-floating-dock">
@@ -2778,7 +3527,7 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                       <>
                         أضف{' '}
                         <strong className="tabular-nums">
-                          {formatNumber(freeDeliveryRemaining)} {currency}
+                          {fmtMoney(freeDeliveryRemaining)}
                         </strong>{' '}
                         للحصول على توصيل مجاني
                       </>
@@ -2818,7 +3567,7 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                 </span>
               </span>
               <span className="tabular-nums">
-                {formatNumber(subtotal)} {currency} ←
+                {fmtMoney(subtotal)} ←
               </span>
             </button>
           </div>
@@ -3096,6 +3845,78 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                 </p>
               )}
 
+              {/* Smart Pairing Suggestions inside Product Modal */}
+              {addons.smartPairingSuggest?.enabled && (() => {
+                const kw = (addons.smartPairingSuggest.categoryKeyword || 'مشروب').trim().toLowerCase();
+                const pairingCatIds = new Set(
+                  allCategories
+                    .filter((c) => c.n.toLowerCase().includes(kw))
+                    .map((c) => c.id)
+                );
+                const pool = allItems.filter(
+                  (it) => it.id !== activeProduct.id && (itemEvalMap.get(it.id)?.available !== false)
+                );
+                const matched = pool.filter(
+                  (it) => pairingCatIds.has(it.cat) || it.n.toLowerCase().includes(kw)
+                );
+                const suggestions = (matched.length > 0 ? matched : pool.slice().sort((a, b) => (Number(a.pr) || 0) - (Number(b.pr) || 0))).slice(0, 3);
+                if (suggestions.length === 0) return null;
+                return (
+                  <div style={{ marginBottom: '14px' }}>
+                    <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--pm-ink)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Sparkles size={14} style={{ color: accentText }} />
+                      <span>{addons.smartPairingSuggest.title || 'يمشي تمام مع مشروب أو صوص جانبي'}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+                      {suggestions.map((sug) => {
+                        const sp = getPriceDisplay(sug, currency, activeMenuDiscount, resolvedPlan.perms.itemDiscounts, activeAltCurrency);
+                        return (
+                          <div
+                            key={sug.id}
+                            style={{
+                              minWidth: '140px',
+                              background: 'var(--pm-soft)',
+                              border: '1px solid var(--pm-line)',
+                              borderRadius: '11px',
+                              padding: '8px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '4px',
+                              flexShrink: 0,
+                            }}
+                          >
+                            <b style={{ fontSize: '12px', color: 'var(--pm-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {sug.n}
+                            </b>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
+                              <span className="tabular-nums" style={{ fontSize: '11.5px', fontWeight: 900, color: accentText }}>
+                                {sp.main}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={(e) => quickAddOrOpenModal(sug, e)}
+                                style={{
+                                  border: 'none',
+                                  borderRadius: '7px',
+                                  background: brandColor,
+                                  color: brandInk,
+                                  padding: '4px 8px',
+                                  fontSize: '11px',
+                                  fontWeight: 800,
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                + أضف
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Quantity & Add to Cart Footer */}
               <div
                 style={{
@@ -3346,6 +4167,35 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                   >
                     <MessageCircle size={19} />
                     <span>فتح محادثة الواتساب</span>
+                  </a>
+                )}
+
+                {addons.curbsidePickupCar?.enabled && orderType === 'pickup' && addons.curbsidePickupCar.allowArrivedPing !== false && (rest.ph || rest.social?.whatsapp) && (
+                  <a
+                    href={waLink(
+                      rest.ph || rest.social?.whatsapp || '',
+                      `🚗 تنبيه وصول للاستلام من السيارة\nرقم الطلب: #${lastOrderSummary.orderSeq || lastOrderSummary.id.slice(-5)}\n${curbsideCarInfo.trim() ? `بيانات السيارة: ${curbsideCarInfo.trim()}\n` : ''}أنا الآن أمام المطعم لاستلام طلبي.`
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      width: '100%',
+                      background: '#f59e0b',
+                      color: '#0f172a',
+                      borderRadius: '14px',
+                      padding: '13px 16px',
+                      fontWeight: 900,
+                      fontSize: '15px',
+                      marginBottom: '10px',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    <Car size={19} />
+                    <span>وصلت أمام المطعم 🚗</span>
                   </a>
                 )}
 
@@ -3733,6 +4583,36 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                     </div>
                   )}
 
+                  {/* Calorie & Macro Budget Meter */}
+                  {addons.calorieMacroBudget?.enabled && (() => {
+                    const targetCal = Math.max(200, Number(addons.calorieMacroBudget.targetCalories) || 800);
+                    const pct = Math.min(100, Math.round((totalCartCalories / targetCal) * 100));
+                    const over = totalCartCalories > targetCal;
+                    return (
+                      <div
+                        style={{
+                          background: over ? 'rgba(245, 158, 11, 0.12)' : 'var(--pm-soft)',
+                          border: over ? '1px solid rgba(245, 158, 11, 0.35)' : '1px solid var(--pm-line)',
+                          borderRadius: '12px',
+                          padding: '10px 12px',
+                          marginBottom: '12px',
+                          fontSize: '12.5px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, marginBottom: '6px', color: 'var(--pm-ink)' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                            <Flame size={14} style={{ color: over ? '#f59e0b' : accentText }} />
+                            سعرات السلة: {formatNumber(totalCartCalories)} / {formatNumber(targetCal)} kcal
+                          </span>
+                          <span className="tabular-nums">{pct}%</span>
+                        </div>
+                        <div style={{ height: '6px', borderRadius: '99px', background: 'rgba(148,163,184,0.2)', overflow: 'hidden' }}>
+                          <div style={{ width: `${pct}%`, height: '100%', background: over ? '#f59e0b' : '#10b981' }} />
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   {/* Cutlery Option Addon */}
                   {addons.cutleryOption?.enabled && (
                     <label
@@ -3744,7 +4624,7 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                         border: '1px solid var(--pm-line)',
                         borderRadius: '12px',
                         padding: '10px 12px',
-                        marginBottom: '12px',
+                        marginBottom: '10px',
                         cursor: 'pointer',
                         fontSize: '12.5px',
                         fontWeight: 700,
@@ -3756,6 +4636,114 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                         type="checkbox"
                         checked={needCutlery}
                         onChange={(e) => setNeedCutlery(e.target.checked)}
+                      />
+                    </label>
+                  )}
+
+                  {/* Birthday VIP Treat Addon */}
+                  {addons.birthdayVipTreat?.enabled && (
+                    <div
+                      style={{
+                        background: 'var(--pm-soft)',
+                        border: isBirthdayOrder ? '1.5px solid #f59e0b' : '1px solid var(--pm-line)',
+                        borderRadius: '12px',
+                        padding: '10px 12px',
+                        marginBottom: '10px',
+                      }}
+                    >
+                      <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', fontSize: '12.5px', fontWeight: 700, color: 'var(--pm-ink)' }}>
+                        <span>🎂 {addons.birthdayVipTreat.label || 'هذا الطلب لعيد ميلاد (أضف هدية مجانية)'}</span>
+                        <input
+                          type="checkbox"
+                          checked={isBirthdayOrder}
+                          onChange={(e) => setIsBirthdayOrder(e.target.checked)}
+                        />
+                      </label>
+                      {isBirthdayOrder && (
+                        <div style={{ marginTop: '8px' }}>
+                          <div style={{ fontSize: '11.5px', color: '#f59e0b', fontWeight: 700, marginBottom: '6px' }}>
+                            ✨ يشمل: {addons.birthdayVipTreat.freeTreatNote || 'حلى مجاني أو شمعة احتفال مع الطلب'}
+                          </div>
+                          <input
+                            type="text"
+                            value={birthdayGiftMessage}
+                            onChange={(e) => setBirthdayGiftMessage(e.target.value)}
+                            placeholder="اكتب عبارة التهنئة لصاحب عيد الميلاد..."
+                            style={{
+                              width: '100%',
+                              padding: '7px 10px',
+                              borderRadius: '8px',
+                              border: '1px solid var(--pm-line)',
+                              background: 'var(--pm-card)',
+                              color: 'var(--pm-ink)',
+                              fontSize: '12px',
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Luxury Gift Packaging Addon */}
+                  {addons.luxuryGiftPackaging?.enabled && (
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        background: 'var(--pm-soft)',
+                        border: wantLuxuryWrap ? '1.5px solid var(--pm-brand)' : '1px solid var(--pm-line)',
+                        borderRadius: '12px',
+                        padding: '10px 12px',
+                        marginBottom: '10px',
+                        cursor: 'pointer',
+                        fontSize: '12.5px',
+                        fontWeight: 700,
+                        color: 'var(--pm-ink)',
+                      }}
+                    >
+                      <span>
+                        🎀 {addons.luxuryGiftPackaging.label || 'تغليف هدايا فاخر مع كرت إهداء'}{' '}
+                        <strong style={{ color: accentText }}>
+                          (+{fmtMoney(Number(addons.luxuryGiftPackaging.feeAmount) || 0)})
+                        </strong>
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={wantLuxuryWrap}
+                        onChange={(e) => setWantLuxuryWrap(e.target.checked)}
+                      />
+                    </label>
+                  )}
+
+                  {/* Charity Meal Roundup Addon */}
+                  {addons.charityMealRoundup?.enabled && (
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        background: 'var(--pm-soft)',
+                        border: wantCharityDonation ? '1.5px solid #10b981' : '1px solid var(--pm-line)',
+                        borderRadius: '12px',
+                        padding: '10px 12px',
+                        marginBottom: '12px',
+                        cursor: 'pointer',
+                        fontSize: '12.5px',
+                        fontWeight: 700,
+                        color: 'var(--pm-ink)',
+                      }}
+                    >
+                      <span>
+                        ❤️ {addons.charityMealRoundup.title || 'ساهم بتوفير وجبة لمحتاج'}{' '}
+                        <strong style={{ color: '#10b981' }}>
+                          (+{fmtMoney(Number(addons.charityMealRoundup.donationAmount) || 500)})
+                        </strong>
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={wantCharityDonation}
+                        onChange={(e) => setWantCharityDonation(e.target.checked)}
                       />
                     </label>
                   )}
@@ -3813,7 +4801,7 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                                 cursor: 'pointer',
                               }}
                             >
-                              {formatNumber(amt)} {currency}
+                              {fmtMoney(amt)}
                             </button>
                           ))}
                         </div>
@@ -3835,8 +4823,8 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                         marginBottom: '12px',
                       }}
                     >
-                      {addons.minOrder?.message || 'الحد الأدنى للطلب هو'} {formatNumber(minOrderAmount)} {currency} (متبقي{' '}
-                      {formatNumber(minOrderAmount - subtotal)} {currency})
+                      {addons.minOrder?.message || 'الحد الأدنى للطلب هو'} {fmtMoney(minOrderAmount)} (متبقي{' '}
+                      {fmtMoney(minOrderAmount - subtotal)})
                     </div>
                   )}
 
@@ -3855,47 +4843,67 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                       <span style={{ color: 'var(--pm-muted)' }}>الطلبات</span>
                       <b className="tabular-nums" style={{ color: 'var(--pm-ink)' }}>
-                        {formatNumber(subtotal)} {currency}
+                        {fmtMoney(subtotal)}
                       </b>
                     </div>
                     {couponDiscount > 0 && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', color: accentText }}>
                         <span>خصم الكوبون ({appliedCoupon})</span>
-                        <b className="tabular-nums">
-                          -{formatNumber(couponDiscount)} {currency}
-                        </b>
+                        <b className="tabular-nums">-{fmtMoney(couponDiscount)}</b>
                       </div>
                     )}
                     {firstOrderDiscountAmt > 0 && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', color: accentText }}>
                         <span>{addons.firstOrderDiscount?.title || 'خصم الطلب الأول'} ({firstOrderPct}%)</span>
-                        <b className="tabular-nums">
-                          -{formatNumber(firstOrderDiscountAmt)} {currency}
-                        </b>
+                        <b className="tabular-nums">-{fmtMoney(firstOrderDiscountAmt)}</b>
                       </div>
                     )}
                     {spinDiscountAmt > 0 && spinWonReward && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', color: accentText }}>
                         <span>مكافأة عجلة الحظ ({spinWonReward.label})</span>
-                        <b className="tabular-nums">
-                          -{formatNumber(spinDiscountAmt)} {currency}
-                        </b>
+                        <b className="tabular-nums">-{fmtMoney(spinDiscountAmt)}</b>
+                      </div>
+                    )}
+                    {bogoDiscountAmt > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', color: accentText }}>
+                        <span>{addons.bogoDealEngine?.title || 'عرض القطعة الثانية'}</span>
+                        <b className="tabular-nums">-{fmtMoney(bogoDiscountAmt)}</b>
+                      </div>
+                    )}
+                    {comboDiscountAmt > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', color: accentText }}>
+                        <span>{addons.buildYourOwnCombo?.title || 'خصم الكومبو'} ({comboPct}%)</span>
+                        <b className="tabular-nums">-{fmtMoney(comboDiscountAmt)}</b>
+                      </div>
+                    )}
+                    {pickupDiscountAmt > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', color: accentText }}>
+                        <span>{addons.pickupInstantDiscount?.title || 'خصم الاستلام الفوري'} ({pickupPct}%)</span>
+                        <b className="tabular-nums">-{fmtMoney(pickupDiscountAmt)}</b>
                       </div>
                     )}
                     {serviceFeeAmount > 0 && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                         <span style={{ color: 'var(--pm-muted)' }}>{serviceFeeLabel}</span>
-                        <b className="tabular-nums" style={{ color: 'var(--pm-ink)' }}>
-                          {formatNumber(serviceFeeAmount)} {currency}
-                        </b>
+                        <b className="tabular-nums" style={{ color: 'var(--pm-ink)' }}>{fmtMoney(serviceFeeAmount)}</b>
+                      </div>
+                    )}
+                    {luxuryWrapFee > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                        <span style={{ color: 'var(--pm-muted)' }}>تغليف هدايا فاخر 🎀</span>
+                        <b className="tabular-nums" style={{ color: 'var(--pm-ink)' }}>{fmtMoney(luxuryWrapFee)}</b>
+                      </div>
+                    )}
+                    {charityDonationAmt > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                        <span style={{ color: 'var(--pm-muted)' }}>مساهمة خيرية ❤️</span>
+                        <b className="tabular-nums" style={{ color: 'var(--pm-ink)' }}>{fmtMoney(charityDonationAmt)}</b>
                       </div>
                     )}
                     {activeTipAmount > 0 && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                         <span style={{ color: 'var(--pm-muted)' }}>إكرامية السائق/الكادر</span>
-                        <b className="tabular-nums" style={{ color: 'var(--pm-ink)' }}>
-                          {formatNumber(activeTipAmount)} {currency}
-                        </b>
+                        <b className="tabular-nums" style={{ color: 'var(--pm-ink)' }}>{fmtMoney(activeTipAmount)}</b>
                       </div>
                     )}
                     {orderType === 'delivery' && (
@@ -3905,14 +4913,14 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                             {rawDeliveryFee > 0 && (
                               <span style={{ textDecoration: 'line-through', color: 'var(--pm-muted)' }}>
-                                {formatNumber(rawDeliveryFee)} {currency}
+                                {fmtMoney(rawDeliveryFee)}
                               </span>
                             )}
                             <span className="pm-badge green">مجاني</span>
                           </span>
                         ) : (
                           <b className="tabular-nums" style={{ color: 'var(--pm-ink)' }}>
-                            {formatNumber(effectiveDeliveryFee)} {currency}
+                            {fmtMoney(effectiveDeliveryFee)}
                           </b>
                         )}
                       </div>
@@ -3931,7 +4939,7 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                     >
                       <span style={{ color: 'var(--pm-ink)' }}>المجموع النهائي</span>
                       <span className="tabular-nums" style={{ color: accentText }}>
-                        {formatNumber(finalTotal)} {currency}
+                        {fmtMoney(finalTotal)}
                       </span>
                     </div>
                   </div>
@@ -4356,6 +5364,34 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                         </div>
                       )}
                     </div>
+
+                    {addons.silentDropoffOption?.enabled && (
+                      <label
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          background: 'var(--pm-soft)',
+                          border: wantSilentDropoff ? '1.5px solid var(--pm-brand)' : '1px solid var(--pm-line)',
+                          borderRadius: '12px',
+                          padding: '10px 12px',
+                          cursor: 'pointer',
+                          fontSize: '12.5px',
+                          fontWeight: 700,
+                          color: 'var(--pm-ink)',
+                        }}
+                      >
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          <BellOff size={15} style={{ color: accentText }} />
+                          <span>{addons.silentDropoffOption.label || 'اترك الطلب عند الباب بدون طرق أو اتصال'}</span>
+                        </span>
+                        <input
+                          type="checkbox"
+                          checked={wantSilentDropoff}
+                          onChange={(e) => setWantSilentDropoff(e.target.checked)}
+                        />
+                      </label>
+                    )}
                   </div>
                 )}
 
@@ -4382,6 +5418,34 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                         >
                           عرض موقع الفرع على خرائط جوجل ←
                         </a>
+                      </div>
+                    )}
+
+                    {addons.curbsidePickupCar?.enabled && (
+                      <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed var(--pm-line)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, color: accentText, marginBottom: '4px' }}>
+                          <Car size={15} />
+                          <span>الاستلام السريع من السيارة</span>
+                        </div>
+                        <div style={{ fontSize: '11.5px', color: 'var(--pm-muted)', marginBottom: '6px' }}>
+                          {addons.curbsidePickupCar.instructions || 'اكتب لون وموديل سيارتك أو رقم اللوحة وسنوصلها لباب السيارة'}
+                        </div>
+                        <input
+                          type="text"
+                          value={curbsideCarInfo}
+                          onChange={(e) => setCurbsideCarInfo(e.target.value)}
+                          placeholder="مثال: تويوتا كامري بيضاء — رقم 12345"
+                          style={{
+                            width: '100%',
+                            padding: '8px 10px',
+                            borderRadius: '9px',
+                            border: '1px solid var(--pm-line)',
+                            background: 'var(--pm-card)',
+                            color: 'var(--pm-ink)',
+                            fontSize: '12.5px',
+                            fontWeight: 700,
+                          }}
+                        />
                       </div>
                     )}
                   </div>
@@ -4794,10 +5858,36 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
                 type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="ابحث عن وجبة أو مشروب..."
+                placeholder={
+                  addons.voiceSearchOrder?.enabled
+                    ? addons.voiceSearchOrder.hintText || 'ابحث بالكتابة أو بالصوت...'
+                    : 'ابحث عن وجبة أو مشروب...'
+                }
                 autoFocus
                 style={{ flex: 1 }}
               />
+              {addons.voiceSearchOrder?.enabled && (
+                <button
+                  type="button"
+                  onClick={handleVoiceSearchStart}
+                  title="البحث الصوتي"
+                  aria-label="البحث الصوتي"
+                  style={{
+                    border: '1px solid color-mix(in srgb, var(--pm-brand) 45%, transparent)',
+                    background: isListeningVoice ? '#ef4444' : brandColor,
+                    color: isListeningVoice ? '#ffffff' : brandInk,
+                    borderRadius: '10px',
+                    width: '40px',
+                    height: '40px',
+                    display: 'grid',
+                    placeItems: 'center',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Mic size={17} />
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => {
@@ -5166,6 +6256,206 @@ const PublicMenuContent: React.FC<PublicMenuContentProps> = ({
         </div>
       )}
 
+      {/* Mood Meal Finder Modal */}
+      {moodModalOpen && addons.moodMealFinder?.enabled && (() => {
+        const moods: Array<{ id: 'fast' | 'light' | 'spicy' | 'sweet'; emoji: string; label: string; desc: string }> = [
+          { id: 'fast', emoji: '⚡', label: 'جوعان ومستعجل', desc: 'أطباق رئيسية سريعة التحضير' },
+          { id: 'light', emoji: '🥗', label: 'خفيف وصحي', desc: 'سعرات أخف واختيارات منعشة' },
+          { id: 'spicy', emoji: '🔥', label: 'نكهة قوية ومميزة', desc: 'مشويات ونكهات حارة ومميزة' },
+          { id: 'sweet', emoji: '🍰', label: 'شيء حلو ومزاج عالي', desc: 'حلويات ومشروبات ترفع المزاج' },
+        ];
+        const availablePool = allItems.filter((it) => itemEvalMap.get(it.id)?.available !== false);
+        const picks = (() => {
+          if (selectedMood === 'light') {
+            const matched = availablePool.filter((i) => /سلط|خفيف|مشوي|صحي|دايت|تونة/i.test(`${i.n} ${i.d || ''}`));
+            return (matched.length ? matched : [...availablePool].sort((a, b) => (parseCaloriesNum(a.calories) || 9999) - (parseCaloriesNum(b.calories) || 9999))).slice(0, 3);
+          }
+          if (selectedMood === 'spicy') {
+            const matched = availablePool.filter((i) => /حار|سبايسي|فلفل|مشوي|كباب|زنجر/i.test(`${i.n} ${i.d || ''}`));
+            return (matched.length ? matched : availablePool).slice(0, 3);
+          }
+          if (selectedMood === 'sweet') {
+            const matched = availablePool.filter((i) => /حلو|كيك|عصير|قهوة|شاي|كنافة|وافل|موهيتو|مشروب/i.test(`${i.n} ${i.d || ''}`));
+            return (matched.length ? matched : availablePool.slice(-3)).slice(0, 3);
+          }
+          return availablePool.slice(0, 3);
+        })();
+        return (
+          <div className="pm-modal-backdrop" onClick={() => setMoodModalOpen(false)}>
+            <div className="pm-sheet" style={{ padding: '20px' }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <b style={{ fontSize: '17px', color: 'var(--pm-ink)' }}>
+                  {addons.moodMealFinder.title || 'اختر وجبتك حسب مزاجك الآن'}
+                </b>
+                <button
+                  type="button"
+                  onClick={() => setMoodModalOpen(false)}
+                  style={{ border: '1px solid var(--pm-line)', background: 'var(--pm-soft)', width: '32px', height: '32px', borderRadius: '50%', display: 'grid', placeItems: 'center', cursor: 'pointer', color: 'var(--pm-ink)' }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginBottom: '14px' }}>
+                {moods.map((m) => {
+                  const active = selectedMood === m.id;
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setSelectedMood(m.id)}
+                      style={{
+                        textAlign: 'start',
+                        padding: '10px',
+                        borderRadius: '12px',
+                        border: active ? '1.5px solid var(--pm-brand)' : '1px solid var(--pm-line)',
+                        background: active ? 'color-mix(in srgb, var(--pm-brand) 14%, transparent)' : 'var(--pm-soft)',
+                        color: 'var(--pm-ink)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <div style={{ fontSize: '15px', fontWeight: 900 }}>{m.emoji} {m.label}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--pm-muted)', marginTop: '2px' }}>{m.desc}</div>
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ fontSize: '12.5px', fontWeight: 800, color: accentText, marginBottom: '8px' }}>
+                ترشيحاتنا الذكية لمزاجك الآن:
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {picks.map((it) => {
+                  const sp = getPriceDisplay(it, currency, activeMenuDiscount, resolvedPlan.perms.itemDiscounts, activeAltCurrency);
+                  return (
+                    <div
+                      key={it.id}
+                      className="pm-option-row"
+                      onClick={() => {
+                        setMoodModalOpen(false);
+                        openProductModal(it);
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                        {it.img && (
+                          <img src={it.img} alt={it.n} referrerPolicy="no-referrer" style={{ width: '44px', height: '44px', borderRadius: '9px', objectFit: 'cover' }} />
+                        )}
+                        <div style={{ minWidth: 0 }}>
+                          <b style={{ display: 'block', fontSize: '13.5px', color: 'var(--pm-ink)' }}>{it.n}</b>
+                          <span className="tabular-nums" style={{ fontSize: '12px', fontWeight: 900, color: accentText }}>{sp.main}</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          quickAddOrOpenModal(it, e);
+                          setMoodModalOpen(false);
+                        }}
+                        style={{
+                          border: 'none',
+                          borderRadius: '9px',
+                          background: brandColor,
+                          color: brandInk,
+                          padding: '6px 11px',
+                          fontSize: '12px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        + أضف
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Dish Compare Drawer Modal */}
+      {compareModalOpen && addons.dishCompareDrawer?.enabled && (
+        <div className="pm-modal-backdrop" onClick={() => setCompareModalOpen(false)}>
+          <div className="pm-sheet" style={{ padding: '20px' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <b style={{ fontSize: '17px', color: 'var(--pm-ink)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <Scale size={17} style={{ color: accentText }} />
+                مقارنة الأطباق ({compareIds.length})
+              </b>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCompareIds([]);
+                    setCompareModalOpen(false);
+                  }}
+                  style={{ border: '1px solid var(--pm-line)', background: 'var(--pm-soft)', borderRadius: '8px', padding: '5px 10px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', color: 'var(--pm-muted)' }}
+                >
+                  مسح الكل
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCompareModalOpen(false)}
+                  style={{ border: '1px solid var(--pm-line)', background: 'var(--pm-soft)', width: '32px', height: '32px', borderRadius: '50%', display: 'grid', placeItems: 'center', cursor: 'pointer', color: 'var(--pm-ink)' }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max(1, compareIds.length)}, minmax(140px, 1fr))`, gap: '10px', overflowX: 'auto' }}>
+              {compareIds.map((id) => {
+                const it = allItems.find((x) => x.id === id);
+                if (!it) return null;
+                const sp = getPriceDisplay(it, currency, activeMenuDiscount, resolvedPlan.perms.itemDiscounts, activeAltCurrency);
+                return (
+                  <div
+                    key={it.id}
+                    style={{
+                      background: 'var(--pm-soft)',
+                      border: '1px solid var(--pm-line)',
+                      borderRadius: '12px',
+                      padding: '10px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '6px',
+                      fontSize: '12px',
+                    }}
+                  >
+                    {it.img && (
+                      <img src={it.img} alt={it.n} referrerPolicy="no-referrer" style={{ width: '100%', height: '84px', objectFit: 'cover', borderRadius: '9px' }} />
+                    )}
+                    <b style={{ fontSize: '13.5px', color: 'var(--pm-ink)' }}>{it.n}</b>
+                    <div style={{ color: accentText, fontWeight: 900 }} className="tabular-nums">{sp.main}</div>
+                    <div style={{ color: 'var(--pm-muted)' }}>⏱️ {it.prepTime || 'غير محدد'}</div>
+                    <div style={{ color: 'var(--pm-muted)' }}>🔥 {it.calories || 'غير محدد'}</div>
+                    <div style={{ color: 'var(--pm-muted)', fontSize: '11px' }}>
+                      ⚠️ {it.allergens || 'لا توجد مسببات مسجلة'}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        quickAddOrOpenModal(it, e);
+                        setCompareModalOpen(false);
+                      }}
+                      style={{
+                        marginTop: 'auto',
+                        border: 'none',
+                        borderRadius: '9px',
+                        background: brandColor,
+                        color: brandInk,
+                        padding: '8px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      + أضف للسلة
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       <ShareMenuModal
         isOpen={shareModalOpen}
         onClose={() => setShareModalOpen(false)}
@@ -5217,7 +6507,7 @@ export const PublicMenuView: React.FC<PublicMenuViewProps> = ({
       : entryRest?.id || restaurantId;
   const rawMainBranch = getItem<Restaurant>(`restaurants/${rootRid}`) || entryRest;
   const isFamilyOwner = Boolean(
-    session && (session.admin || session.rid === rootRid || session.personalRid === rootRid)
+    session && ((session.admin && !session.menuLoggedOut) || session.rid === rootRid || session.personalRid === rootRid)
   );
   const allRests = getCollection<Restaurant>('restaurants');
   const childBranches = allRests.filter(

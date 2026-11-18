@@ -255,7 +255,7 @@ export const ItemsPage: React.FC = () => {
         style={{ maxWidth: '880px', margin: '0 auto' }}
         initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.88, ease: [0.16, 1, 0.3, 1] }}
       >
         {/* Top Editor Action Bar */}
         <div
@@ -386,7 +386,7 @@ export const ItemsPage: React.FC = () => {
             key={itemEditorTab}
             initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
             style={{
               ...surfaceCardStyle,
               borderRadius: '18px',
@@ -1300,7 +1300,7 @@ export const ItemsPage: React.FC = () => {
         className="mp-items-toolbar"
         initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
       >
         <button
           type="button"
@@ -1327,7 +1327,7 @@ export const ItemsPage: React.FC = () => {
         className="mp-items-cats-bar"
         initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.36, delay: prefersReducedMotion ? 0 : 0.04, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.88, delay: prefersReducedMotion ? 0 : 0.08, ease: [0.16, 1, 0.3, 1] }}
       >
         <button
           type="button"
@@ -1391,7 +1391,7 @@ export const ItemsPage: React.FC = () => {
         className="mp-items-list"
         initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.38, delay: prefersReducedMotion ? 0 : 0.08, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.9, delay: prefersReducedMotion ? 0 : 0.14, ease: [0.16, 1, 0.3, 1] }}
       >
         {displayItems.map((item) => {
           const catObj = allCategories.find((c) => c.id === item.cat);
@@ -1584,7 +1584,7 @@ export const ItemsPage: React.FC = () => {
           <motion.div
             initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             style={{
               position: 'fixed',
               top: '50%',
@@ -1673,7 +1673,7 @@ export const ItemsPage: React.FC = () => {
           <motion.div
             initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             style={{
               position: 'fixed',
               top: '50%',

@@ -1077,7 +1077,9 @@ app.post('/api/auth/impersonate', requireAdminOrStaff(), async (req, res) => {
     const updated = {
       ...ses,
       rid: nextRid,
+      personalRid: exitToOwn ? (ses.personalRid || 'demo') : (ses.personalRid || nextRid),
       impersonating: !exitToOwn && nextRid !== (ses.personalRid || 'demo'),
+      menuLoggedOut: false,
     };
     await updateServerAuthSession(ses.sid, updated);
     req.authSession = updated;
@@ -1089,8 +1091,28 @@ app.post('/api/auth/impersonate', requireAdminOrStaff(), async (req, res) => {
 
 app.post('/api/auth/logout', async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
+  const body = (req.body || {}) as Record<string, unknown>;
+  const scope = String(body.scope || 'all').trim();
+  const ses = req.authSession;
+  if (scope === 'menu' && ses && ses.admin && !ses.menuLoggedOut) {
+    const updated = {
+      ...ses,
+      rid: undefined,
+      personalRid: undefined,
+      impersonating: false,
+      menuLoggedOut: true,
+    };
+    await updateServerAuthSession(ses.sid, updated);
+    req.authSession = updated;
+    return res.json({
+      ok: true,
+      partial: true,
+      token: signSid(updated.sid),
+      session: sanitizeAuthSessionForClient(updated),
+    });
+  }
   await destroyServerAuthSession(req, res);
-  return res.json({ ok: true });
+  return res.json({ ok: true, partial: false });
 });
 
 // Validated public review submission (without granting full write access to restaurants/*)
@@ -1148,7 +1170,7 @@ app.post('/api/session', async (req, res) => {
     return res.json({ ok: true, sessionId: ses.sid });
   }
   if (ses.admin) {
-    const updated = { ...ses, rid: targetRid };
+    const updated = { ...ses, rid: targetRid, menuLoggedOut: false };
     await updateServerAuthSession(ses.sid, updated);
     req.authSession = updated;
     return res.json({ ok: true, sessionId: ses.sid });

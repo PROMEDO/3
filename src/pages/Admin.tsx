@@ -263,6 +263,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
       personalRid: session.personalRid || 'demo',
       rid,
       admin: true,
+      menuLoggedOut: false,
     });
     onNavigate('/dashboard/home');
   };
@@ -883,7 +884,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
           key={effectiveTab}
           initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.88, ease: [0.16, 1, 0.3, 1] }}
         >
         {/* ============================================================== */}
         {/* TAB 0: HOME REST STATION / LOUNGE (الصفحة الرئيسية - محطة الاستراحة) */}
@@ -931,7 +932,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 className="card"
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.38, delay: prefersReducedMotion ? 0 : 0.04, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.82, delay: prefersReducedMotion ? 0 : 0.06, ease: [0.16, 1, 0.3, 1] }}
                 whileHover={prefersReducedMotion ? undefined : { y: -2 }}
               >
                 <div className="v tabular-nums">{paidPartners.length}</div>
@@ -941,7 +942,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 className="card"
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.38, delay: prefersReducedMotion ? 0 : 0.09, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.82, delay: prefersReducedMotion ? 0 : 0.14, ease: [0.16, 1, 0.3, 1] }}
                 whileHover={prefersReducedMotion ? undefined : { y: -2 }}
               >
                 <div className="v tabular-nums">{trialPartners.length}</div>
@@ -951,7 +952,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 className="card"
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.38, delay: prefersReducedMotion ? 0 : 0.14, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.82, delay: prefersReducedMotion ? 0 : 0.22, ease: [0.16, 1, 0.3, 1] }}
                 whileHover={prefersReducedMotion ? undefined : { y: -2 }}
               >
                 <div className="v tabular-nums">{totalOrdersCount}</div>
@@ -961,7 +962,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 className="card"
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.38, delay: prefersReducedMotion ? 0 : 0.19, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.82, delay: prefersReducedMotion ? 0 : 0.3, ease: [0.16, 1, 0.3, 1] }}
                 whileHover={prefersReducedMotion ? undefined : { y: -2 }}
               >
                 <div className="v tabular-nums">{thisMonthOrdersCount}</div>
@@ -978,7 +979,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
               initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.06 }}
-              transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
             >
               <div
                 style={{
@@ -1147,7 +1148,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 className="card"
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.38, delay: prefersReducedMotion ? 0 : 0.04, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.82, delay: prefersReducedMotion ? 0 : 0.06, ease: [0.16, 1, 0.3, 1] }}
                 whileHover={prefersReducedMotion ? undefined : { y: -2 }}
                 style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
               >
@@ -1172,7 +1173,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 className="card"
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.38, delay: prefersReducedMotion ? 0 : 0.09, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.82, delay: prefersReducedMotion ? 0 : 0.14, ease: [0.16, 1, 0.3, 1] }}
                 whileHover={prefersReducedMotion ? undefined : { y: -2 }}
                 style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
               >
@@ -1197,7 +1198,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 className="card"
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.38, delay: prefersReducedMotion ? 0 : 0.14, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.82, delay: prefersReducedMotion ? 0 : 0.22, ease: [0.16, 1, 0.3, 1] }}
                 whileHover={prefersReducedMotion ? undefined : { y: -2 }}
                 style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
               >
@@ -1229,7 +1230,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
               initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.08 }}
-              transition={{ duration: 0.44, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
               style={{ textAlign: 'center', padding: '24px 14px' }}
             >
               <h3 style={{ marginBottom: '6px', fontSize: '18px' }}>محاكي الآيفون التفاعلي الحي</h3>
@@ -1391,7 +1392,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.06 }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
               >
                 <div className="mp-framed-title">
                   <span>مظهر لوحة الإدارة ولوحة تحكم الزبائن</span>
@@ -1616,7 +1617,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                     initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0.06 }}
-                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                    transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
                   >
                     <div className="mp-framed-title" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
@@ -1828,7 +1829,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.06 }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
               >
                 <div className="mp-framed-title">
                   <Wallet size={15} style={{ color: 'var(--brand-ink, #34D399)' }} />
@@ -1891,7 +1892,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.06 }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
               >
                 <div id="adm-tabs-admin" className="mp-framed-wrap mp-tabs-col">
                   <div className="mp-framed-title">
@@ -2072,7 +2073,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, amount: 0.06 }}
-                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <div className="mp-framed-title" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                     <span>تعديل وترتيب ميزات الباقات في الصفحة الرئيسية (من الأعلى للأسفل)</span>

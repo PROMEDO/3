@@ -382,7 +382,7 @@ export const SeasonalHeroRibbon: React.FC<{ shape: MenuThemeShape }> = ({ shape 
       className={`pm-seasonal-ribbon ${meta.cls}`}
       initial={prefersReducedMotion ? false : { opacity: 0, y: -10, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
     >
       <motion.span
         className="pm-seasonal-ribbon-icon"

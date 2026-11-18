@@ -344,7 +344,7 @@ export const AdminHomeLounge: React.FC<AdminHomeLoungeProps> = () => {
         <motion.div
           initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
           style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}
         >
           <div
@@ -378,7 +378,7 @@ export const AdminHomeLounge: React.FC<AdminHomeLoungeProps> = () => {
           className="card"
           initial={prefersReducedMotion ? false : { opacity: 0, y: 16, scale: 0.985 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.48, delay: prefersReducedMotion ? 0 : 0.08, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.9, delay: prefersReducedMotion ? 0 : 0.1, ease: [0.16, 1, 0.3, 1] }}
           style={{
             width: '100%',
             padding: '22px 24px',

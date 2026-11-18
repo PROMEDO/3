@@ -197,7 +197,7 @@ export const OrdersPage: React.FC = () => {
         className="mp-orders-toolbar"
         initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
       >
         <div className="mp-orders-tabs" role="tablist" aria-label="تصفية الطلبات">
           <button
@@ -262,7 +262,7 @@ export const OrdersPage: React.FC = () => {
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.08 }}
-                transition={{ duration: 0.34, delay: prefersReducedMotion ? 0 : Math.min(idx * 0.035, 0.25), ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.82, delay: prefersReducedMotion ? 0 : Math.min(idx * 0.06, 0.36), ease: [0.16, 1, 0.3, 1] }}
               >
                 <div className="mp-order-top-line">
                   <div className="mp-order-meta-group">
@@ -370,7 +370,7 @@ export const OrdersPage: React.FC = () => {
               onClick={(e) => e.stopPropagation()}
               initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.96, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               style={{
                 width: 'min(560px, 100%)',
                 maxHeight: '90dvh',
@@ -778,7 +778,7 @@ export const OrdersPage: React.FC = () => {
               onClick={(e) => e.stopPropagation()}
               initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               style={surfaceCardStyle}
             >
               <div className="mp-status-picker-header">

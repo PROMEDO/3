@@ -60,6 +60,7 @@ export interface ServerAuthSession {
   roleTitle?: string;
   permissions?: Partial<HierarchicalStaffPermissions>;
   impersonating?: boolean;
+  menuLoggedOut?: boolean;
   createdAt: number;
   expiresAt: number;
 }
@@ -387,6 +388,7 @@ export function sanitizeAuthSessionForClient(ses: ServerAuthSession | null) {
     roleTitle: ses.roleTitle,
     permissions: ses.permissions,
     impersonating: ses.impersonating,
+    menuLoggedOut: ses.menuLoggedOut ? true : undefined,
   };
 }
 

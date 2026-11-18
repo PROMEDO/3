@@ -590,6 +590,128 @@ export interface RestaurantAddons {
     enabled?: boolean;
     presetsText?: string;
   };
+  mysteryBoxOffer?: {
+    configured?: boolean;
+    enabled?: boolean;
+    title?: string;
+    subtitle?: string;
+    price?: number;
+    originalPrice?: number;
+    remainingCount?: number;
+  };
+  bogoDealEngine?: {
+    configured?: boolean;
+    enabled?: boolean;
+    title?: string;
+    secondItemDiscountPercent?: number;
+  };
+  vipSecretMenuLock?: {
+    configured?: boolean;
+    enabled?: boolean;
+    secretCode?: string;
+    dishName?: string;
+    dishDesc?: string;
+    dishPrice?: number;
+  };
+  pickupInstantDiscount?: {
+    configured?: boolean;
+    enabled?: boolean;
+    title?: string;
+    discountPercent?: number;
+  };
+  birthdayVipTreat?: {
+    configured?: boolean;
+    enabled?: boolean;
+    label?: string;
+    freeTreatNote?: string;
+  };
+  buildYourOwnCombo?: {
+    configured?: boolean;
+    enabled?: boolean;
+    title?: string;
+    requiredCount?: number;
+    discountPercent?: number;
+  };
+  flashQuantityScarcity?: {
+    configured?: boolean;
+    enabled?: boolean;
+    badgePrefix?: string;
+    defaultRemaining?: number;
+  };
+  streakRewardsCard?: {
+    configured?: boolean;
+    enabled?: boolean;
+    targetOrders?: number;
+    rewardTitle?: string;
+  };
+  smartPairingSuggest?: {
+    configured?: boolean;
+    enabled?: boolean;
+    title?: string;
+    categoryKeyword?: string;
+  };
+  luxuryGiftPackaging?: {
+    configured?: boolean;
+    enabled?: boolean;
+    label?: string;
+    feeAmount?: number;
+  };
+  moodMealFinder?: {
+    configured?: boolean;
+    enabled?: boolean;
+    title?: string;
+    buttonText?: string;
+  };
+  voiceSearchOrder?: {
+    configured?: boolean;
+    enabled?: boolean;
+    lang?: 'ar-IQ' | 'ar-SA' | 'en-US';
+    hintText?: string;
+  };
+  dietaryAllergyRadar?: {
+    configured?: boolean;
+    enabled?: boolean;
+    warningText?: string;
+  };
+  calorieMacroBudget?: {
+    configured?: boolean;
+    enabled?: boolean;
+    targetCalories?: number;
+  };
+  multiCurrencySwitch?: {
+    configured?: boolean;
+    enabled?: boolean;
+    altSymbol?: string;
+    exchangeRate?: number;
+  };
+  dishCompareDrawer?: {
+    configured?: boolean;
+    enabled?: boolean;
+    maxCompare?: number;
+  };
+  charityMealRoundup?: {
+    configured?: boolean;
+    enabled?: boolean;
+    title?: string;
+    donationAmount?: number;
+  };
+  curbsidePickupCar?: {
+    configured?: boolean;
+    enabled?: boolean;
+    instructions?: string;
+    allowArrivedPing?: boolean;
+  };
+  liveKitchenLoad?: {
+    configured?: boolean;
+    enabled?: boolean;
+    level?: 'calm' | 'moderate' | 'busy';
+    customNote?: string;
+  };
+  silentDropoffOption?: {
+    configured?: boolean;
+    enabled?: boolean;
+    label?: string;
+  };
   [key: string]: any;
 }
 
@@ -679,6 +801,13 @@ export interface Restaurant {
   telegramUsername?: string;
   telegramNotificationsEnabled?: boolean;
   orderChannel?: 'both' | 'telegram' | 'whatsapp';
+  qrDesign?: {
+    dotStyle?: 'square' | 'dots' | 'rounded' | 'diamond';
+    bgPreset?: 'white' | 'cream' | 'dark' | 'emerald' | 'gold';
+    framePreset?: 'minimal' | 'table' | 'classic' | 'badge';
+    qrColor?: string;
+    showLogo?: boolean;
+  };
   [key: string]: any;
 }
 
@@ -766,6 +895,7 @@ export interface Session {
   rid?: string;
   personalRid?: string;
   admin?: boolean;
+  menuLoggedOut?: boolean;
   phone?: string;
   email?: string;
   [key: string]: any;

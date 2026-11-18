@@ -137,6 +137,12 @@ export default function App() {
         return;
       }
 
+      if (parsed.page === 'dashboard' && curSession?.admin && curSession.menuLoggedOut && !curSession.rid) {
+        window.history.replaceState(null, '', '/admin/home');
+        setRoute({ page: 'admin', tab: 'home', path: '/admin/home' });
+        return;
+      }
+
       if (parsed.page === 'dashboard' && !curSession?.admin) {
         const rid = curSession?.rid as string;
         if (!rid) {
@@ -323,6 +329,13 @@ export default function App() {
       const parsed = parsePathRoute(nextPathname);
       const curSession = getSession();
 
+      if (parsed.page === 'dashboard' && curSession?.admin && curSession.menuLoggedOut && !curSession.rid) {
+        window.history.pushState(null, '', '/admin/home');
+        setRoute({ page: 'admin', tab: 'home', path: '/admin/home' });
+        window.scrollTo({ top: 0, behavior: 'auto' });
+        return;
+      }
+
       // Strictly forbid accessing dashboard if store setup is incomplete
       if (parsed.page === 'dashboard' && !curSession?.admin) {
         const rid = curSession?.rid;
@@ -372,14 +385,32 @@ export default function App() {
     [applyGuardedRoute, refreshData, showToast]
   );
 
-  const handleLogout = useCallback(() => {
-    void logoutFromServer();
+  const handleLogout = useCallback(async (forceFull = false) => {
+    const cur = getSession();
+    const shouldPartialMenuLogout = Boolean(!forceFull && cur?.admin && !cur.menuLoggedOut);
+    if (shouldPartialMenuLogout) {
+      const result = await logoutFromServer('menu');
+      setSessionState(result.session);
+      if (typeof window !== 'undefined') {
+        if (window.location.pathname === '/') {
+          window.location.reload();
+        } else {
+          window.location.href = '/';
+        }
+      }
+      return;
+    }
+
+    await logoutFromServer('all');
     setSessionState(null);
-    showToast('تم تسجيل الخروج بنجاح');
-    window.history.pushState(null, '', '/');
-    setRoute({ page: 'home', path: '/' });
-    window.scrollTo({ top: 0, behavior: 'auto' });
-  }, [showToast]);
+    if (typeof window !== 'undefined') {
+      if (window.location.pathname === '/') {
+        window.location.reload();
+      } else {
+        window.location.href = '/';
+      }
+    }
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -441,7 +472,7 @@ export default function App() {
         />
       )}
 
-      {route.page === 'dashboard' && (session?.rid || session?.admin) && (
+      {route.page === 'dashboard' && (session?.rid || (session?.admin && !session?.menuLoggedOut)) && (
         <DashboardPage
           session={
             session.rid
@@ -452,7 +483,7 @@ export default function App() {
           site={site}
           initialSubTab={route.tab}
           onNavigate={handleNavigate}
-          onLogout={handleLogout}
+          onLogout={() => void handleLogout(false)}
           onRefresh={refreshData}
           showToast={showToast}
         />
@@ -467,7 +498,7 @@ export default function App() {
           theme={theme}
           initialSubTab={route.tab}
           onNavigate={handleNavigate}
-          onLogout={handleLogout}
+          onLogout={() => void handleLogout(true)}
           onRefresh={refreshData}
           showToast={showToast}
         />

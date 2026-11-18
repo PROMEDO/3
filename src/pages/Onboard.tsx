@@ -4,6 +4,7 @@
  */
 
 import React, { useRef, useState } from 'react';
+import { motion, useReducedMotion } from 'motion/react';
 import { Category, MenuItem, Restaurant, SiteSettings } from '../types';
 import {
   compressImage,
@@ -94,6 +95,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
     putItem(`restaurants/${restaurantId}`, initialRest);
   }
   const resolvedPlan = resolveRestaurantPlan(initialRest, getPlans());
+  const prefersReducedMotion = useReducedMotion();
 
   // Steps: 0 = Project Info, 1 = Hours, 2 = Categories, 3 = Items, 4 = Finish ("مبروك"), 5 = Complete Editing ("أكمل التعديل على المنيو")
   const [step, setStep] = useState<number>(0);
@@ -641,12 +643,23 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
       </div>
 
       {/* Single Unified Box: Aurora Progress Bar + Active Step Content + Navigation */}
-      <div className="card mp-unified-card">
+      <motion.div
+        className="card mp-unified-card"
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 20, scale: 0.985 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+      >
         {step < 5 && (
           <UnifiedSetupProgressBar stage={onboardStageMap[step] || 'onboard-info'} integrated />
         )}
 
-        <div style={{ padding: '20px 22px 24px' }}>
+        <motion.div
+          key={step}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+          style={{ padding: '20px 22px 24px' }}
+        >
           {error && (
             <div className="mp-inline-status is-err" role="alert" style={{ marginBottom: '14px' }}>
               <AlertTriangle size={16} style={{ flexShrink: 0 }} />
@@ -2391,8 +2404,8 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
           </button>
         </div>
       )}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       <AjaxConfirmModal
         dialog={ajaxDialog}

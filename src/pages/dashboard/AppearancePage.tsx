@@ -5,52 +5,15 @@
 
 import React from 'react';
 import { motion, useReducedMotion } from 'motion/react';
-import { Palette, RotateCcw, Save, Shapes, Sparkles } from 'lucide-react';
+import { Palette, RotateCcw, Save, Shapes } from 'lucide-react';
 import {
   MENU_SHAPES,
   MENU_THEMES,
   getAllowedThemesForPlan,
   getContrastInk,
-  getSeasonalPairedShape,
   resolveMenuThemeEffectiveMode,
 } from '../../utils/plans';
 import { LAYOUT_DEFINITIONS, useDashboard } from './DashboardContext';
-
-const SEASONAL_SHOWCASE = [
-  {
-    themeId: 'ramadan-royal',
-    shapeId: 'ramadan' as const,
-    title: 'مظهر رمضان المبارك',
-    subtitle: 'فوانيس متأرجحة، هلال متوهج، زخارف هندسية إسلامية، ونجوم متلألئة بالذهبي والكحلي الملكي',
-    mainSymbol: '🌙',
-    decorSymbols: ['🏮', '✨', '🕌', '⭐'],
-    tags: ['فوانيس متحركة', 'هلال وزخارف', 'ألوان ملكية'],
-    swatches: ['#F59E0B', '#FDE047', '#090d1f'],
-    cardClass: 'is-ramadan',
-  },
-  {
-    themeId: 'eid-joy',
-    shapeId: 'eid' as const,
-    title: 'مظهر العيد الاحتفالي',
-    subtitle: 'زينة أعلام ملوّنة، بالونات طائرة، ولمسات زمردية وذهبية ووردية مبهجة مع شريط تهنئة',
-    mainSymbol: '🎉',
-    decorSymbols: ['🎈', '🎁', '🎊', '✨'],
-    tags: ['بالونات وأعلام', 'أجواء مبهجة', 'حركة احتفالية'],
-    swatches: ['#10B981', '#FBBF24', '#EC4899'],
-    cardClass: 'is-eid',
-  },
-  {
-    themeId: 'newyear-gala',
-    shapeId: 'newyear' as const,
-    title: 'مظهر رأس السنة',
-    subtitle: 'ألعاب نارية متفجرة، تساقط ثلوج وبريق جليدي، وتوهج ليلي فاخر بالذهبي والأزرق السماوي',
-    mainSymbol: '🎆',
-    decorSymbols: ['❄️', '🎇', '✨', '🥂'],
-    tags: ['ألعاب نارية', 'تساقط ثلوج', 'توهج كوني'],
-    swatches: ['#FBBF24', '#38BDF8', '#070913'],
-    cardClass: 'is-newyear',
-  },
-];
 
 export const AppearancePage: React.FC = () => {
   const prefersReducedMotion = useReducedMotion();
@@ -211,76 +174,6 @@ export const AppearancePage: React.FC = () => {
         </div>
       </motion.section>
 
-      {/* 2.5 Seasonal & Festive Themes Showcase (Ramadan, Eid, New Year) */}
-      <motion.section
-        className="mp-appearance-section"
-        initial={prefersReducedMotion ? false : { opacity: 0, y: 24, scale: 0.985 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.9, delay: prefersReducedMotion ? 0 : 0.12, ease: [0.16, 1, 0.3, 1] }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, rgba(245,158,11,0.2), rgba(16,185,129,0.2))', border: '1px solid rgba(245,158,11,0.4)', color: '#F59E0B', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-            <Sparkles size={18} />
-          </div>
-          <div>
-            <h2 className="mp-appearance-section-title" style={{ margin: '0 0 2px' }}>
-              المظاهر الموسمية والاحتفالية (رمضان • العيد • رأس السنة)
-            </h2>
-            <p style={{ fontSize: '12px', color: 'var(--muted)', margin: 0 }}>
-              تُفعّل بضغطة واحدة مع ألوان قوية، أشكال وعلامات خاصة، وأنيميشن احتفالي كامل في منيو الزبائن
-            </p>
-          </div>
-        </div>
-
-        <div className="mp-appearance-seasonal-grid">
-          {SEASONAL_SHOWCASE.map((item) => {
-            const isActive = menuThemePreset === item.themeId || menuThemeShape === item.shapeId;
-            return (
-              <motion.button
-                key={item.themeId}
-                type="button"
-                onClick={() => handleSelectMenuTheme(item.themeId)}
-                className={`mp-seasonal-preset-card ${item.cardClass} ${isActive ? 'selected' : ''}`}
-                whileHover={prefersReducedMotion ? undefined : { y: -4, scale: 1.01 }}
-                whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-              >
-                <div className="mp-seasonal-card-stage" aria-hidden="true">
-                  <span className="mp-seasonal-float-sym is-s1">{item.decorSymbols[0]}</span>
-                  <span className="mp-seasonal-float-sym is-s2">{item.decorSymbols[1]}</span>
-                  <span className="mp-seasonal-float-sym is-s3">{item.decorSymbols[2]}</span>
-                  <span className="mp-seasonal-float-sym is-s4">{item.decorSymbols[3]}</span>
-                  <span className="mp-seasonal-main-emblem">{item.mainSymbol}</span>
-                </div>
-
-                <div className="mp-seasonal-card-head">
-                  <b className="mp-seasonal-card-title">{item.title}</b>
-                  <span className={`mp-seasonal-card-badge ${isActive ? 'active' : ''}`}>
-                    {isActive ? 'مفعّل ✓' : 'تفعيل فوري'}
-                  </span>
-                </div>
-
-                <p className="mp-seasonal-card-desc">{item.subtitle}</p>
-
-                <div className="mp-seasonal-card-foot">
-                  <div className="mp-seasonal-swatches">
-                    {item.swatches.map((hex) => (
-                      <span key={hex} style={{ background: hex }} />
-                    ))}
-                  </div>
-                  <div className="mp-seasonal-tags">
-                    {item.tags.map((tag) => (
-                      <span key={tag} className="mp-seasonal-tag">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </motion.button>
-            );
-          })}
-        </div>
-      </motion.section>
-
       {/* 3. Menu Colors */}
       <section className="mp-appearance-section">
         <motion.div
@@ -297,38 +190,27 @@ export const AppearancePage: React.FC = () => {
               اختر ألوان المنيو
             </h2>
             <p style={{ fontSize: '12px', color: 'var(--muted)', margin: 0 }}>
-              ثيمات لونية متوافقة تلقائياً مع الوضع الفاتح والغامق بالإضافة للمظاهر الموسمية والألوان المخصصة
+              ثيمات لونية متوافقة تلقائياً مع الوضع الفاتح والغامق والألوان المخصصة
             </p>
           </div>
         </motion.div>
 
         <div className="mp-appearance-themes-grid">
-          {MENU_THEMES.map((theme, idx) => {
+          {MENU_THEMES.filter((t) => !t.seasonal).map((theme, idx) => {
             const isUnlocked = allowedThemes.some((t) => t.id === theme.id);
             const isSelected = menuThemePreset === theme.id;
             const pal = previewMode === 'dark' ? theme.darkPalette : theme.lightPalette;
             const targetOpacity = isUnlocked ? 1 : 0.62;
             const showWithInitialSection = idx < 2;
-            const pairedSeasonal = getSeasonalPairedShape(theme.id);
-            const seasonalIcons =
-              pairedSeasonal === 'ramadan'
-                ? '🌙 🏮 ✨'
-                : pairedSeasonal === 'eid'
-                ? '🎉 🎈 🎊'
-                : pairedSeasonal === 'newyear'
-                ? '🎆 ❄️ ✨'
-                : null;
 
             return (
               <motion.button
                 key={theme.id}
                 type="button"
                 onClick={() => handleSelectMenuTheme(theme.id)}
-                className={`mp-appearance-theme-card ${isSelected ? 'selected' : ''} ${
-                  theme.seasonal ? 'is-seasonal-theme' : ''
-                }`}
+                className={`mp-appearance-theme-card ${isSelected ? 'selected' : ''}`}
                 style={{
-                  borderColor: isSelected ? pal.brand : theme.seasonal ? pal.accent : undefined,
+                  borderColor: isSelected ? pal.brand : undefined,
                   opacity: targetOpacity,
                 }}
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
@@ -360,9 +242,7 @@ export const AppearancePage: React.FC = () => {
                     <span className="mp-theme-mini-line" style={{ background: pal.text, width: '62%' }} />
                     <span className="mp-theme-mini-line" style={{ background: pal.muted, width: '40%', opacity: 0.6 }} />
                   </div>
-                  <span className="mp-theme-mini-pill" style={{ background: pal.brand, display: 'grid', placeItems: 'center', fontSize: '11px' }}>
-                    {pairedSeasonal === 'ramadan' ? '🌙' : pairedSeasonal === 'eid' ? '🎈' : pairedSeasonal === 'newyear' ? '🎆' : ''}
-                  </span>
+                  <span className="mp-theme-mini-pill" style={{ background: pal.brand }} />
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
@@ -371,8 +251,8 @@ export const AppearancePage: React.FC = () => {
                     <span style={{ width: '14px', height: '14px', borderRadius: '50%', background: pal.accent, border: '1px solid rgba(255,255,255,0.2)' }} />
                     <span style={{ width: '14px', height: '14px', borderRadius: '50%', background: pal.bg, border: '1px solid rgba(148,163,184,0.4)' }} />
                   </div>
-                  <span style={{ fontSize: '10.5px', fontWeight: 800, color: isUnlocked ? (isSelected ? 'var(--brand-ink, #34D399)' : theme.seasonal ? pal.brand : 'var(--muted)') : '#f59e0b' }}>
-                    {!isUnlocked ? '🔒 مقفل' : isSelected ? 'نشط ✓' : seasonalIcons || (previewMode === 'dark' ? 'غامق 🌙' : 'فاتح ☀️')}
+                  <span style={{ fontSize: '10.5px', fontWeight: 800, color: isUnlocked ? (isSelected ? 'var(--brand-ink, #34D399)' : 'var(--muted)') : '#f59e0b' }}>
+                    {!isUnlocked ? '🔒 مقفل' : isSelected ? 'نشط ✓' : previewMode === 'dark' ? 'غامق 🌙' : 'فاتح ☀️'}
                   </span>
                 </div>
                 <b style={{ fontSize: '13px', color: 'var(--ink)' }}>{theme.name}</b>

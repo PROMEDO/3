@@ -92,12 +92,9 @@ export const AddonsPage: React.FC = () => {
         className="mp-items-toolbar"
         initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
-        style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}
+        transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+        style={{ justifyContent: 'flex-end', flexWrap: 'wrap', gap: '10px' }}
       >
-        <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--muted)' }}>
-          الإضافات الأكثر أهمية في الأعلى • لتشغيل أي إضافة اضغط "تشغيل" واضبط إعداداتها أولاً
-        </div>
         <div
           className={`mp-items-count-box ${allowedAddonsCount === 0 ? 'is-limit' : ''}`}
           aria-label={`صلاحيتك بالإضافات ${addonsLimitText}`}
@@ -131,8 +128,8 @@ export const AddonsPage: React.FC = () => {
               whileInView={{ opacity: allowed ? 1 : 0.72, y: 0 }}
               viewport={{ once: true, amount: 0.05 }}
               transition={{
-                duration: 0.34,
-                delay: prefersReducedMotion ? 0 : Math.min((idx % 8) * 0.03, 0.2),
+                duration: 0.82,
+                delay: prefersReducedMotion ? 0 : Math.min((idx % 8) * 0.06, 0.38),
                 ease: [0.16, 1, 0.3, 1],
               }}
               whileHover={prefersReducedMotion ? undefined : { y: -2 }}
@@ -206,7 +203,7 @@ export const AddonsPage: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
             initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.96, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             style={surfaceCardStyle}
           >
             <form onSubmit={handleSaveAddonEdit} className="mp-addon-modal-form" noValidate>
@@ -1204,6 +1201,512 @@ export const AddonsPage: React.FC = () => {
                     />
                   </label>
                 )}
+
+                {editingAddonKey === 'mysteryBoxOffer' && (
+                  <>
+                    <label className="f">
+                      اسم صندوق المفاجآت
+                      <input
+                        type="text"
+                        value={addonDraft.title || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, title: e.target.value }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                    <label className="f">
+                      وصف المحتويات والمفاجأة
+                      <input
+                        type="text"
+                        value={addonDraft.subtitle || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, subtitle: e.target.value }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                    <div className="mp-grid-2">
+                      <label className="f">
+                        سعر الصندوق ({currency})
+                        <input
+                          type="number"
+                          min={500}
+                          value={addonDraft.price ?? 8000}
+                          onChange={(e) => updateDraft((p) => ({ ...p, price: Number(e.target.value) }))}
+                          style={themedInputStyle}
+                        />
+                      </label>
+                      <label className="f">
+                        القيمة الحقيقية قبل الخصم
+                        <input
+                          type="number"
+                          min={500}
+                          value={addonDraft.originalPrice ?? 16000}
+                          onChange={(e) => updateDraft((p) => ({ ...p, originalPrice: Number(e.target.value) }))}
+                          style={themedInputStyle}
+                        />
+                      </label>
+                    </div>
+                    <label className="f">
+                      الكمية المتبقية المعروضة للزبائن
+                      <input
+                        type="number"
+                        min={1}
+                        max={100}
+                        value={addonDraft.remainingCount ?? 5}
+                        onChange={(e) => updateDraft((p) => ({ ...p, remainingCount: Number(e.target.value) }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                  </>
+                )}
+
+                {editingAddonKey === 'bogoDealEngine' && (
+                  <>
+                    <label className="f">
+                      عنوان عرض القطعة الثانية
+                      <input
+                        type="text"
+                        value={addonDraft.title || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, title: e.target.value }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                    <label className="f">
+                      نسبة الخصم على القطعة الأقل سعراً (%)
+                      <input
+                        type="number"
+                        min={5}
+                        max={100}
+                        value={addonDraft.secondItemDiscountPercent ?? 50}
+                        onChange={(e) => updateDraft((p) => ({ ...p, secondItemDiscountPercent: Number(e.target.value) }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                  </>
+                )}
+
+                {editingAddonKey === 'vipSecretMenuLock' && (
+                  <>
+                    <label className="f">
+                      الرمز السري لفتح الطبق المخفي
+                      <input
+                        type="text"
+                        dir="ltr"
+                        value={addonDraft.secretCode || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, secretCode: e.target.value }))}
+                        style={{ ...themedInputStyle, textAlign: 'left' }}
+                      />
+                    </label>
+                    <label className="f">
+                      اسم الطبق السري الخاص بكبار الشخصيات
+                      <input
+                        type="text"
+                        value={addonDraft.dishName || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, dishName: e.target.value }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                    <label className="f">
+                      وصف الطبق السري
+                      <input
+                        type="text"
+                        value={addonDraft.dishDesc || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, dishDesc: e.target.value }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                    <label className="f">
+                      سعر الطبق السري ({currency})
+                      <input
+                        type="number"
+                        min={500}
+                        value={addonDraft.dishPrice ?? 12000}
+                        onChange={(e) => updateDraft((p) => ({ ...p, dishPrice: Number(e.target.value) }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                  </>
+                )}
+
+                {editingAddonKey === 'pickupInstantDiscount' && (
+                  <>
+                    <label className="f">
+                      عنوان خصم الاستلام من المتجر
+                      <input
+                        type="text"
+                        value={addonDraft.title || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, title: e.target.value }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                    <label className="f">
+                      نسبة الخصم الفوري عند اختيار الاستلام (%)
+                      <input
+                        type="number"
+                        min={2}
+                        max={60}
+                        value={addonDraft.discountPercent ?? 10}
+                        onChange={(e) => updateDraft((p) => ({ ...p, discountPercent: Number(e.target.value) }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                  </>
+                )}
+
+                {editingAddonKey === 'birthdayVipTreat' && (
+                  <>
+                    <label className="f">
+                      عنوان خيار عيد الميلاد في السلة
+                      <input
+                        type="text"
+                        value={addonDraft.label || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, label: e.target.value }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                    <label className="f">
+                      ملاحظة الهدية المجانية (حلى / شمعة / تهنئة)
+                      <input
+                        type="text"
+                        value={addonDraft.freeTreatNote || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, freeTreatNote: e.target.value }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                  </>
+                )}
+
+                {editingAddonKey === 'buildYourOwnCombo' && (
+                  <>
+                    <label className="f">
+                      عنوان عرض صمّم وجبتك
+                      <input
+                        type="text"
+                        value={addonDraft.title || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, title: e.target.value }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                    <div className="mp-grid-2">
+                      <label className="f">
+                        أقل عدد أصناف في السلة
+                        <input
+                          type="number"
+                          min={2}
+                          max={10}
+                          value={addonDraft.requiredCount ?? 3}
+                          onChange={(e) => updateDraft((p) => ({ ...p, requiredCount: Number(e.target.value) }))}
+                          style={themedInputStyle}
+                        />
+                      </label>
+                      <label className="f">
+                        نسبة خصم الكومبو (%)
+                        <input
+                          type="number"
+                          min={2}
+                          max={60}
+                          value={addonDraft.discountPercent ?? 12}
+                          onChange={(e) => updateDraft((p) => ({ ...p, discountPercent: Number(e.target.value) }))}
+                          style={themedInputStyle}
+                        />
+                      </label>
+                    </div>
+                  </>
+                )}
+
+                {editingAddonKey === 'flashQuantityScarcity' && (
+                  <div className="mp-grid-2">
+                    <label className="f">
+                      نص شارة الكمية المحدودة
+                      <input
+                        type="text"
+                        value={addonDraft.badgePrefix || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, badgePrefix: e.target.value }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                    <label className="f">
+                      الحد الأقصى للعدد المعروض
+                      <input
+                        type="number"
+                        min={1}
+                        max={25}
+                        value={addonDraft.defaultRemaining ?? 4}
+                        onChange={(e) => updateDraft((p) => ({ ...p, defaultRemaining: Number(e.target.value) }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                  </div>
+                )}
+
+                {editingAddonKey === 'streakRewardsCard' && (
+                  <div className="mp-grid-2">
+                    <label className="f">
+                      عدد الطلبات لفتح المكافأة
+                      <input
+                        type="number"
+                        min={2}
+                        max={20}
+                        value={addonDraft.targetOrders ?? 5}
+                        onChange={(e) => updateDraft((p) => ({ ...p, targetOrders: Number(e.target.value) }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                    <label className="f">
+                      المكافأة عند اكتمال السلسلة
+                      <input
+                        type="text"
+                        value={addonDraft.rewardTitle || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, rewardTitle: e.target.value }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                  </div>
+                )}
+
+                {editingAddonKey === 'smartPairingSuggest' && (
+                  <>
+                    <label className="f">
+                      عنوان قسم التكميل الذكي داخل نافذة الصنف
+                      <input
+                        type="text"
+                        value={addonDraft.title || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, title: e.target.value }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                    <label className="f">
+                      كلمة مفتاحية لقسم المشروبات أو الإضافات (مثال: مشروب)
+                      <input
+                        type="text"
+                        value={addonDraft.categoryKeyword || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, categoryKeyword: e.target.value }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                  </>
+                )}
+
+                {editingAddonKey === 'luxuryGiftPackaging' && (
+                  <div className="mp-grid-2">
+                    <label className="f">
+                      وصف خيار تغليف الهدايا الفاخر
+                      <input
+                        type="text"
+                        value={addonDraft.label || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, label: e.target.value }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                    <label className="f">
+                      رسوم التغليف ({currency})
+                      <input
+                        type="number"
+                        min={0}
+                        value={addonDraft.feeAmount ?? 2000}
+                        onChange={(e) => updateDraft((p) => ({ ...p, feeAmount: Number(e.target.value) }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                  </div>
+                )}
+
+                {editingAddonKey === 'moodMealFinder' && (
+                  <div className="mp-grid-2">
+                    <label className="f">
+                      عنوان نافذة اختيار المزاج
+                      <input
+                        type="text"
+                        value={addonDraft.title || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, title: e.target.value }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                    <label className="f">
+                      نص زر مكتشف المزاج في المنيو
+                      <input
+                        type="text"
+                        value={addonDraft.buttonText || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, buttonText: e.target.value }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                  </div>
+                )}
+
+                {editingAddonKey === 'voiceSearchOrder' && (
+                  <>
+                    <label className="f">
+                      لغة التعرف الصوتي الافتراضية
+                      <select
+                        value={addonDraft.lang || 'ar-IQ'}
+                        onChange={(e) => updateDraft((p) => ({ ...p, lang: e.target.value }))}
+                        style={themedInputStyle}
+                      >
+                        <option value="ar-IQ">العربية - العراق (ar-IQ)</option>
+                        <option value="ar-SA">العربية - الخليج والسعودية (ar-SA)</option>
+                        <option value="en-US">الإنجليزية (en-US)</option>
+                      </select>
+                    </label>
+                    <label className="f">
+                      النص التوضيحي بجانب المايكروفون
+                      <input
+                        type="text"
+                        value={addonDraft.hintText || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, hintText: e.target.value }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                  </>
+                )}
+
+                {editingAddonKey === 'dietaryAllergyRadar' && (
+                  <label className="f">
+                    رسالة التنبيه عند وجود مكونات حساسية في الصنف
+                    <input
+                      type="text"
+                      value={addonDraft.warningText || ''}
+                      onChange={(e) => updateDraft((p) => ({ ...p, warningText: e.target.value }))}
+                      style={themedInputStyle}
+                    />
+                  </label>
+                )}
+
+                {editingAddonKey === 'calorieMacroBudget' && (
+                  <label className="f">
+                    حد السعرات الحرارية المستهدف للوجبة (kcal)
+                    <input
+                      type="number"
+                      min={200}
+                      max={4000}
+                      value={addonDraft.targetCalories ?? 800}
+                      onChange={(e) => updateDraft((p) => ({ ...p, targetCalories: Number(e.target.value) }))}
+                      style={themedInputStyle}
+                    />
+                  </label>
+                )}
+
+                {editingAddonKey === 'multiCurrencySwitch' && (
+                  <div className="mp-grid-2">
+                    <label className="f">
+                      رمز العملة البديلة (مثال: $)
+                      <input
+                        type="text"
+                        dir="ltr"
+                        value={addonDraft.altSymbol || '$'}
+                        onChange={(e) => updateDraft((p) => ({ ...p, altSymbol: e.target.value }))}
+                        style={{ ...themedInputStyle, textAlign: 'left' }}
+                      />
+                    </label>
+                    <label className="f">
+                      سعر الصرف (كم وحدة تساوي 1 عملة بديلة)
+                      <input
+                        type="number"
+                        min={1}
+                        step="any"
+                        value={addonDraft.exchangeRate ?? 1500}
+                        onChange={(e) => updateDraft((p) => ({ ...p, exchangeRate: Number(e.target.value) }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                  </div>
+                )}
+
+                {editingAddonKey === 'dishCompareDrawer' && (
+                  <label className="f">
+                    أقصى عدد أطباق للمقارنة في نفس الوقت
+                    <input
+                      type="number"
+                      min={2}
+                      max={4}
+                      value={addonDraft.maxCompare ?? 2}
+                      onChange={(e) => updateDraft((p) => ({ ...p, maxCompare: Number(e.target.value) }))}
+                      style={themedInputStyle}
+                    />
+                  </label>
+                )}
+
+                {editingAddonKey === 'charityMealRoundup' && (
+                  <div className="mp-grid-2">
+                    <label className="f">
+                      عنوان التبرع الخيري في السلة
+                      <input
+                        type="text"
+                        value={addonDraft.title || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, title: e.target.value }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                    <label className="f">
+                      مبلغ المساهمة ({currency})
+                      <input
+                        type="number"
+                        min={100}
+                        value={addonDraft.donationAmount ?? 500}
+                        onChange={(e) => updateDraft((p) => ({ ...p, donationAmount: Number(e.target.value) }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                  </div>
+                )}
+
+                {editingAddonKey === 'curbsidePickupCar' && (
+                  <>
+                    <label className="f">
+                      تعليمات الاستلام من السيارة للزبون
+                      <input
+                        type="text"
+                        value={addonDraft.instructions || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, instructions: e.target.value }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', color: 'var(--ink)' }}>
+                      <input
+                        type="checkbox"
+                        checked={addonDraft.allowArrivedPing !== false}
+                        onChange={(e) => updateDraft((p) => ({ ...p, allowArrivedPing: e.target.checked }))}
+                      />
+                      <span>تفعيل زر "وصلت أمام المطعم" لإرسال إشعار فوري عبر واتساب</span>
+                    </label>
+                  </>
+                )}
+
+                {editingAddonKey === 'liveKitchenLoad' && (
+                  <>
+                    <label className="f">
+                      حالة ضغط المطبخ الحالية
+                      <select
+                        value={addonDraft.level || 'moderate'}
+                        onChange={(e) => updateDraft((p) => ({ ...p, level: e.target.value }))}
+                        style={themedInputStyle}
+                      >
+                        <option value="calm">هادئ (تجهيز سريع ⚡)</option>
+                        <option value="moderate">متوسط (الوقت الاعتيادي ⏱️)</option>
+                        <option value="busy">مزدحم (ضغط طلبات عالي 🔥)</option>
+                      </select>
+                    </label>
+                    <label className="f">
+                      ملاحظة إضافية تظهر بجانب الشارة
+                      <input
+                        type="text"
+                        value={addonDraft.customNote || ''}
+                        onChange={(e) => updateDraft((p) => ({ ...p, customNote: e.target.value }))}
+                        style={themedInputStyle}
+                      />
+                    </label>
+                  </>
+                )}
+
+                {editingAddonKey === 'silentDropoffOption' && (
+                  <label className="f">
+                    نص خيار التوصيل الصامت بدون طرق الباب
+                    <input
+                      type="text"
+                      value={addonDraft.label || ''}
+                      onChange={(e) => updateDraft((p) => ({ ...p, label: e.target.value }))}
+                      style={themedInputStyle}
+                    />
+                  </label>
+                )}
               </div>
 
               {/* Sticky Footer */}
@@ -1238,7 +1741,7 @@ export const AddonsPage: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
             initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             style={{
               position: 'relative',
               width: 'min(420px, 92vw)',

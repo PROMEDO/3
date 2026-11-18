@@ -348,7 +348,7 @@ export const TelegramPage: React.FC = () => {
         style={{ marginBottom: '16px' }}
         initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <h2 style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
@@ -383,7 +383,7 @@ export const TelegramPage: React.FC = () => {
           className="card"
           initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.88, ease: [0.16, 1, 0.3, 1] }}
           style={{ ...surfaceCardStyle, padding: '22px' }}
         >
           {botUnavailable && (
@@ -607,7 +607,7 @@ export const TelegramPage: React.FC = () => {
           initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.08 }}
-          transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
           style={{
             ...surfaceCardStyle,
             padding: '18px 20px',
@@ -749,7 +749,7 @@ export const TelegramPage: React.FC = () => {
           initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.08 }}
-          transition={{ duration: 0.42, delay: prefersReducedMotion ? 0 : 0.05, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.9, delay: prefersReducedMotion ? 0 : 0.08, ease: [0.16, 1, 0.3, 1] }}
           style={{
             ...surfaceCardStyle,
             padding: '18px 20px',

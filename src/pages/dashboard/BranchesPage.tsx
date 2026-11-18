@@ -101,7 +101,7 @@ export const BranchesPage: React.FC = () => {
             className="btn p"
             initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.94 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
             whileHover={prefersReducedMotion ? undefined : { scale: 1.03 }}
             whileTap={prefersReducedMotion ? undefined : { scale: 0.96 }}
             style={{
@@ -159,7 +159,7 @@ export const BranchesPage: React.FC = () => {
                 <motion.div
                   initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 0.88, ease: [0.16, 1, 0.3, 1] }}
                   style={{
                     ...surfaceCardStyle,
                     borderRadius: '18px',
@@ -245,7 +245,7 @@ export const BranchesPage: React.FC = () => {
                   key={branch.id}
                   initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.36, delay: prefersReducedMotion ? 0 : Math.min(idx * 0.05, 0.2), ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 0.82, delay: prefersReducedMotion ? 0 : Math.min(idx * 0.07, 0.35), ease: [0.16, 1, 0.3, 1] }}
                   style={{
                     ...surfaceCardStyle,
                     borderRadius: '18px',
@@ -342,7 +342,7 @@ export const BranchesPage: React.FC = () => {
             initial={prefersReducedMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={prefersReducedMotion ? undefined : { opacity: 0 }}
-            transition={{ duration: 0.22 }}
+            transition={{ duration: 0.55 }}
             onClick={() => setShowCreateModal(false)}
             style={{
               position: 'fixed',
@@ -363,7 +363,7 @@ export const BranchesPage: React.FC = () => {
               initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.96, y: 8 }}
-              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
               style={{
                 ...surfaceCardStyle,
                 width: '100%',

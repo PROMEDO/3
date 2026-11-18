@@ -612,7 +612,7 @@ export const PLAN_FEATURE_TOGGLE_LABELS: Array<{
   { key: 'popupAd', label: 'البوب آب الإعلاني المنبثق' },
   { key: 'happyHourDiscount', label: 'خصم بساعات محددة ومؤقت العروض' },
   { key: 'customColors', label: 'تخصيص الألوان والهوية البصرية بالكامل' },
-  { key: 'allAddons', label: 'تفعيل كافة الإضافات التسويقية (30 إضافة)' },
+  { key: 'allAddons', label: 'تفعيل كافة الإضافات التسويقية (50 إضافة)' },
 ];
 
 export interface PlanComparisonRow {
@@ -694,7 +694,7 @@ export function getDefaultComparisonRows(
       { key: 'discounts', label: 'Product discounts', included: Boolean(fm.itemDiscounts) },
       { key: 'popup', label: 'Promotional popup ad', included: Boolean(fm.popupAd) },
       { key: 'happyHour', label: 'Happy hour & timers', included: Boolean(fm.happyHourDiscount) },
-      { key: 'addons', label: 'All 30 Marketing Add-ons', included: Boolean(fm.allAddons) },
+      { key: 'addons', label: 'All 50 Marketing Add-ons', included: Boolean(fm.allAddons) },
     ];
   }
 
@@ -727,7 +727,7 @@ export function getDefaultComparisonRows(
       { key: 'discounts', label: 'داشکاندن لەسەر بەرهەمەکان', included: Boolean(fm.itemDiscounts) },
       { key: 'popup', label: 'پۆپئاپی ڕێکلامی', included: Boolean(fm.popupAd) },
       { key: 'happyHour', label: 'داشکاندنی کاتژمێری دیاریکراو', included: Boolean(fm.happyHourDiscount) },
-      { key: 'addons', label: '٣٠ تایبەتمەندی بازرگانی تەواو', included: Boolean(fm.allAddons) },
+      { key: 'addons', label: '٥٠ تایبەتمەندی بازرگانی تەواو', included: Boolean(fm.allAddons) },
     ];
   }
 
@@ -765,7 +765,7 @@ export function getDefaultComparisonRows(
     { key: 'discounts', label: 'خصومات على العناصر', included: Boolean(fm.itemDiscounts) },
     { key: 'popup', label: 'بوب آب إعلاني منبثق', included: Boolean(fm.popupAd) },
     { key: 'happyHour', label: 'خصم بساعات محددة', included: Boolean(fm.happyHourDiscount) },
-    { key: 'addons', label: '30 إضافة تسويقية شاملة', included: Boolean(fm.allAddons) },
+    { key: 'addons', label: '50 إضافة تسويقية وذكية شاملة', included: Boolean(fm.allAddons) },
   ];
 }
 
@@ -1032,7 +1032,7 @@ export const DEFAULT_PLANS_V2: PricingPlan[] = [
       'رابط مخصص لكل فرع باسم المشروع',
       'طلبات التوصيل والحجز والطاولات',
       'كل المظاهر + تخصيص الألوان',
-      '30 إضافة تسويقية وتشغيلية شاملة',
+      '50 إضافة تسويقية وتشغيلية وذكية شاملة',
     ],
     addonsHighlights: VIP_ALL_ADDONS_LIST,
     featuresMap: {

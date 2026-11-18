@@ -2357,6 +2357,15 @@ export async function syncSessionFromServer(): Promise<Session | null> {
 function normalizeSessionRecord(s: Session | null): Session | null {
   if (!s || typeof s !== 'object') return null;
   if (s.admin) {
+    if (s.menuLoggedOut) {
+      return {
+        ...s,
+        menuLoggedOut: true,
+        rid: undefined,
+        personalRid: undefined,
+        impersonating: false,
+      };
+    }
     const personalRid = s.personalRid || 'demo';
     return {
       ...s,
@@ -2522,8 +2531,46 @@ export async function impersonateWithServer(targetRid: string | null): Promise<{
   return { ok: true, session: normalized };
 }
 
-export async function logoutFromServer(): Promise<void> {
-  const headers = getAuthHeaders();
+export async function logoutFromServer(
+  scope: 'menu' | 'all' = 'all'
+): Promise<{ partial: boolean; session: Session | null }> {
+  const headers = getAuthHeaders({ 'Content-Type': 'application/json' });
+  const currentLocal = getSession();
+
+  if (scope === 'menu' && currentLocal?.admin && !currentLocal.menuLoggedOut) {
+    let nextSes: Session = {
+      ...currentLocal,
+      menuLoggedOut: true,
+      rid: undefined,
+      personalRid: undefined,
+      impersonating: false,
+    };
+    if (typeof fetch !== 'undefined') {
+      try {
+        const res = await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers,
+          credentials: 'include',
+          cache: 'no-store',
+          body: JSON.stringify({ scope: 'menu' }),
+        });
+        if (res.ok) {
+          const data = (await res.json().catch(() => ({}))) as {
+            partial?: boolean;
+            token?: string;
+            session?: Session | null;
+          };
+          if (data.token) setAuthToken(data.token);
+          if (data.session) nextSes = data.session;
+        }
+      } catch {
+        // fallback to local menu logout
+      }
+    }
+    const saved = setLocalSessionOnly(nextSes);
+    return { partial: true, session: saved };
+  }
+
   setAuthToken(null);
   setLocalSessionOnly(null);
   setStoredSessionId(null);
@@ -2539,8 +2586,10 @@ export async function logoutFromServer(): Promise<void> {
       headers,
       credentials: 'include',
       cache: 'no-store',
+      body: JSON.stringify({ scope: 'all' }),
     }).catch(() => {});
   }
+  return { partial: false, session: null };
 }
 
 export async function submitReviewToServer(
