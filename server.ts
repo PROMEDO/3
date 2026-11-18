@@ -1604,10 +1604,6 @@ const SEO_RESERVED_SEGMENTS = new Set([
 ]);
 
 function resolveRequestOrigin(req: Request): string {
-  const configured = String(process.env.APP_URL || '').trim().replace(/\/+$/, '');
-  if (configured && /^https?:\/\//i.test(configured)) {
-    return configured;
-  }
   const proto = String(req.headers['x-forwarded-proto'] || req.protocol || 'https').split(',')[0].trim();
   const host = String(req.headers['x-forwarded-host'] || req.headers.host || BASE_DOMAIN).split(',')[0].trim();
   return `${proto}://${host}`;

@@ -111,21 +111,24 @@ export const AppearancePage: React.FC = () => {
                 onClick={() => handleSelectThemeMode('light')}
                 className={`mp-appearance-mode-btn ${menuThemeMode === 'light' ? 'active' : ''}`}
               >
-                <span>☀️ فاتح</span>
+                <span>فاتح</span>
+                <span className="mp-mode-icon">☀️</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleSelectThemeMode('dark')}
                 className={`mp-appearance-mode-btn ${menuThemeMode === 'dark' ? 'active' : ''}`}
               >
-                <span>🌙 غامق</span>
+                <span>غامق</span>
+                <span className="mp-mode-icon">🌙</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleSelectThemeMode('auto')}
                 className={`mp-appearance-mode-btn ${menuThemeMode === 'auto' ? 'active' : ''}`}
               >
-                <span>📱 حسب الجهاز</span>
+                <span>حسب الجهاز</span>
+                <span className="mp-mode-icon">📱</span>
               </button>
             </div>
           </div>

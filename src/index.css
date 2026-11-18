@@ -10367,6 +10367,66 @@ html[data-theme="dark"] .mp-items-count-box {
   box-shadow: 0 6px 20px rgba(56, 189, 248, 0.3) !important;
 }
 
+/* ===== Always keep icons/shapes on the LEFT side of button/nav text (RTL & LTR) ===== */
+[dir='rtl'] .btn > svg,
+[dir='rtl'] .profile-popover-item > svg,
+[dir='rtl'] .sb nav button > svg,
+[dir='rtl'] .drawer-panel nav button > svg,
+[dir='rtl'] .sb-footer-item > svg,
+[dir='rtl'] .mp-dash-topbar-btn > svg,
+[dir='rtl'] .mp-addon-btn-toggle > svg,
+[dir='rtl'] .mp-addon-btn-toggle > .mp-addon-dot,
+[dir='rtl'] .mp-addon-btn-edit > svg,
+[dir='rtl'] .mp-appearance-save-btn > svg,
+[dir='rtl'] .mp-appearance-mode-btn > .mp-mode-icon,
+[dir='rtl'] .mp-wa-cta-link > svg,
+[dir='rtl'] .pm-list-add-btn > svg,
+[dir='rtl'] .pm-owner-back-btn > svg,
+[dir='rtl'] .pm-cat-chip > svg,
+[dir='rtl'] .pm-cart-cta > span:first-child > svg {
+  order: 2;
+  flex-shrink: 0;
+}
+
+[dir='rtl'] .sb nav button > .bd,
+[dir='rtl'] .drawer-panel nav button > .bd {
+  order: 1;
+}
+
+[dir='rtl'] .mp-appearance-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+[dir='ltr'] .btn > svg,
+[dir='ltr'] .profile-popover-item > svg,
+[dir='ltr'] .sb nav button > svg,
+[dir='ltr'] .drawer-panel nav button > svg,
+[dir='ltr'] .sb-footer-item > svg,
+[dir='ltr'] .mp-dash-topbar-btn > svg,
+[dir='ltr'] .mp-addon-btn-toggle > svg,
+[dir='ltr'] .mp-addon-btn-toggle > .mp-addon-dot,
+[dir='ltr'] .mp-addon-btn-edit > svg,
+[dir='ltr'] .mp-appearance-save-btn > svg,
+[dir='ltr'] .mp-appearance-mode-btn > .mp-mode-icon,
+[dir='ltr'] .mp-wa-cta-link > svg,
+[dir='ltr'] .pm-list-add-btn > svg,
+[dir='ltr'] .pm-owner-back-btn > svg,
+[dir='ltr'] .pm-cat-chip > svg,
+[dir='ltr'] .pm-cart-cta > span:first-child > svg {
+  order: -1;
+  flex-shrink: 0;
+}
+
+[dir='ltr'] .mp-appearance-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
 
 
 
